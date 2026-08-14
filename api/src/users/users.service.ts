@@ -39,7 +39,7 @@ export class UsersService {
   }
 
   async create(input: RegisterUserDto) {
-    const  [user] = await this.dbProvider.db
+    const [user] = await this.dbProvider.db
       .insert(User)
       .values(input)
       .returning();
