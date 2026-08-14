@@ -7,9 +7,9 @@ import { DbModule } from './db/db.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
-    DbModule
+    DbModule,
   ],
   controllers: [AppController],
   providers: [AppService],
