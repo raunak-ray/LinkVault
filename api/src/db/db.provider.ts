@@ -9,7 +9,7 @@ export class DbProvider implements OnModuleDestroy {
   readonly db: NodePgDatabase;
 
   constructor(private readonly configService: ConfigService) {
-    const dbUrl = this.configService.getOrThrow('DB_URL');
+    const dbUrl = this.configService.getOrThrow<string>('DB_URL');
 
     this.pool = new Pool({
       connectionString: dbUrl,

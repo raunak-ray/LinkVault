@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const logger = new Logger('main');
@@ -16,7 +17,9 @@ async function bootstrap() {
     }),
   );
 
+  app.use(cookieParser());
+
   await app.listen(PORT);
   logger.log(`Server started on: http://localhost:${PORT}/`);
 }
-bootstrap();
+void bootstrap();
