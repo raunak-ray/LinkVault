@@ -9,6 +9,23 @@ The API uses a **two-token strategy**:
 - **Access token** (JWT, 15m): short-lived, sent by the client in the `Authorization: Bearer` header. Stateless — the server never stores it.
 - **Refresh token** (JWT, 1 day): long-lived, stored in an `httpOnly` cookie (`refreshToken`), rotated on every use, and stored **hashed** in the database as a session row.
 
+## Response envelope
+
+Every **success** response has the same shape (enforced by a global `TransformInterceptor` — no exceptions, no guessing):
+
+```json
+{
+  "success": true,
+  "statusCode": 200,
+  "message": "Request successful",
+  "data": { }
+}
+```
+
+- `statusCode` mirrors the HTTP status (e.g. `201` on register).
+- `message` is per-endpoint via `@ResponseMessage()`; endpoints without one default to `Request successful`.
+- Errors keep Nest's default error shape for now (`{ message, error, statusCode }`).
+
 ```mermaid
 flowchart LR
     Client[Web client] -->|Bearer access token| Guard[AuthGuard]
@@ -37,4 +54,5 @@ flowchart LR
 
 - Sequence diagrams show the exact request/response order between `Client → Controller → Service → DB`.
 - `alt` / `opt` blocks mark conditional branches (the failure cases).
+- Response payloads in the diagrams are the `data` field of the envelope described above.
 - All diagrams are [Mermaid](https://mermaid.js.org) — rendered automatically on GitHub.
