@@ -24,7 +24,7 @@ sequenceDiagram
     A-->>C: 200 [{ id, createdAt, expiresAt }]
 ```
 
-Response shape (per session):
+Response shape (per session, inside the standard `data` envelope):
 
 ```json
 {

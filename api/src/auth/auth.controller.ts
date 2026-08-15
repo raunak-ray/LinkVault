@@ -16,6 +16,7 @@ import { AuthService } from './services/auth.service';
 import { LoginUserDto } from './dto/login.dto';
 import { AuthGuard } from './guards/auth.guard';
 import { CurrentUser } from 'src/common/decorator/current-user.decorator';
+import { ResponseMessage } from 'src/common/decorator/response-message.decorator';
 import { type Request, type Response } from 'express';
 
 @Controller('auth')
@@ -23,6 +24,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ResponseMessage('User registered successfully')
   @Post('register')
   async register(
     @Body() body: RegisterUserDto,
@@ -34,6 +36,7 @@ export class AuthController {
   }
 
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @ResponseMessage('Login successful')
   @Post('login')
   @HttpCode(200)
   async login(
@@ -46,6 +49,7 @@ export class AuthController {
   }
 
   @Throttle({ default: { limit: 30, ttl: 60_000 } })
+  @ResponseMessage('Tokens refreshed')
   @Post('refresh')
   @HttpCode(200)
   async refresh(
@@ -57,6 +61,7 @@ export class AuthController {
     return data;
   }
 
+  @ResponseMessage('Logged out successfully')
   @Post('logout')
   @HttpCode(200)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
@@ -80,6 +85,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard)
+  @ResponseMessage('Session revoked')
   @Delete('sessions/:id')
   async revokeSession(
     @CurrentUser('sub') sub: string,
