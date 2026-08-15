@@ -62,4 +62,9 @@ export class AuthService {
     this.logger.log(`Successful login for email: ${input.email}`);
     return { ...user, ...tokens, password: undefined };
   }
+
+  async fetchMe(id: string) {
+    const user = await this.userService.findById(id);
+    return user;
+  }
 }
