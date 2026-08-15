@@ -15,9 +15,12 @@ import { RefreshTokenService } from './refresh-token.service';
 import { JwtPayload } from '../interface/jwt-payload';
 import { randomUUID } from 'crypto';
 
+const DUMMY_HASH =
+  '$2b$10$CwTycUXWue0Thq9StjUM0uJ8X1XHd8DkVq8YfYkXo0D0D9mH3m2Vq';
+
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger('auth');
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     private readonly userService: UsersService,
     private readonly tokenService: TokenService,
@@ -28,7 +31,9 @@ export class AuthService {
     const existingUser = await this.userService.findByEmail(input.email);
 
     if (existingUser) {
-      this.logger.warn(`Failed registration attempt for email: ${input.email}`);
+      this.logger.warn(
+        `Registration blocked: email already registered (${input.email})`,
+      );
       throw new ConflictException('User with this email already exists');
     }
 
@@ -42,7 +47,7 @@ export class AuthService {
 
     const { accessToken } = await this.issueSession(user.id, user.email, res);
 
-    this.logger.log(`Successful registration for email: ${input.email}`);
+    this.logger.log(`User registered (id: ${user.id})`);
 
     return { ...user, accessToken };
   }
@@ -50,16 +55,12 @@ export class AuthService {
   async loginUser(input: LoginUserDto, res: Response) {
     const user = await this.userService.findByEmailWithPassword(input.email);
 
-    if (!user) {
-      this.logger.warn(`Failed login attempt for email: ${input.email}`);
-      throw new ConflictException('Invalid credentials');
-    }
+    const passwordHash = user?.password ?? DUMMY_HASH;
+    const passwordsMatch = await bcrypt.compare(input.password, passwordHash);
 
-    const passwordsMatch = await bcrypt.compare(input.password, user.password);
-
-    if (!passwordsMatch) {
-      this.logger.warn(`Failed login attempt for email: ${input.email}`);
-      throw new ConflictException('Invalid credentials');
+    if (!user || !passwordsMatch) {
+      this.logger.warn(`Failed login attempt (${input.email})`);
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const safeUser = this.userService.mapUser(user);
@@ -70,7 +71,7 @@ export class AuthService {
       res,
     );
 
-    this.logger.log(`Successful login for email: ${input.email}`);
+    this.logger.log(`User logged in (id: ${safeUser.id})`);
     return { ...safeUser, accessToken };
   }
 
@@ -106,7 +107,7 @@ export class AuthService {
 
     if (session.revoked_at) {
       this.logger.warn(
-        `Refresh token reuse detected for user: ${session.user_id}`,
+        `Refresh token reuse detected for user ${session.user_id}; revoking all sessions`,
       );
       await this.refreshTokenService.revokeAllForUser(session.user_id);
       this.clearRefreshToken(res);
@@ -114,19 +115,26 @@ export class AuthService {
     }
 
     if (session.expires_at < new Date()) {
+      this.logger.warn(
+        `Refresh token expired for user ${session.user_id}; session revoked`,
+      );
       await this.refreshTokenService.revoke(session.id);
       throw new UnauthorizedException('Refresh token expired');
     }
 
     await this.refreshTokenService.revoke(session.id);
 
-    const { accessToken } = await this.issueSession(
+    const { accessToken, refreshExpiry } = await this.issueSession(
       session.user_id,
       payload.email,
       res,
     );
 
-    return { accessToken };
+    this.logger.debug(
+      `Refresh token rotated for user ${session.user_id} (session ${session.id})`,
+    );
+
+    return { accessToken, refreshExpiry };
   }
 
   async logout(req: Request, res: Response) {
@@ -139,7 +147,7 @@ export class AuthService {
           await this.refreshTokenService.revoke(payload.jti);
         }
       } catch {
-        this.logger.warn('Logout attempt with invalid refresh token');
+        this.logger.warn('Logout with invalid or expired refresh token');
       }
     }
 
@@ -149,6 +157,11 @@ export class AuthService {
 
   async fetchMe(id: string) {
     const user = await this.userService.findById(id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     return user;
   }
 
@@ -170,19 +183,20 @@ export class AuthService {
     }
 
     await this.refreshTokenService.revoke(sessionId);
+    this.logger.log(`Session revoked (id: ${sessionId}, user: ${userId})`);
     return { success: true };
   }
 
   private async issueSession(userId: string, email: string, res: Response) {
     const jti = randomUUID();
-    const { accessToken, refreshToken, RefreshTokenExpiry } =
+    const { accessToken, refreshToken, refreshExpiry } =
       await this.tokenService.issueTokenPair({
         sub: userId,
         email,
         jti,
       });
 
-    this.storeRefreshToken(refreshToken, res);
+    this.storeRefreshToken(refreshToken, res, refreshExpiry);
 
     const refreshTokenHash =
       await this.tokenService.hashRefreshToken(refreshToken);
@@ -190,19 +204,20 @@ export class AuthService {
     await this.refreshTokenService.create({
       id: jti,
       token: refreshTokenHash,
-      expiry: RefreshTokenExpiry,
+      expiry: refreshExpiry,
       userId,
     });
 
-    return { accessToken };
+    return { accessToken, refreshExpiry };
   }
 
-  private storeRefreshToken(token: string, res: Response) {
+  private storeRefreshToken(token: string, res: Response, expiresAt: Date) {
     res.cookie('refreshToken', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/auth',
+      maxAge: expiresAt.getTime() - Date.now(),
     });
   }
 

@@ -4,7 +4,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const logger = new Logger('main');
+  const logger = new Logger('Bootstrap');
 
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT ?? 5050;
@@ -17,9 +17,16 @@ async function bootstrap() {
     }),
   );
 
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:3000'],
+    credentials: true,
+  });
+
   app.use(cookieParser());
 
+  app.enableShutdownHooks();
+
   await app.listen(PORT);
-  logger.log(`Server started on: http://localhost:${PORT}/`);
+  logger.log(`API started on: http://localhost:${PORT}/`);
 }
 void bootstrap();

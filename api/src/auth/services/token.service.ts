@@ -36,9 +36,9 @@ export class TokenService {
 
   async issueTokenPair(payload: JwtPayload) {
     const accessToken = await this.issueAccessToken(payload);
-    const { token: refreshToken, expiry: RefreshTokenExpiry } =
+    const { token: refreshToken, expiry: refreshExpiry } =
       await this.issueRefreshToken(payload);
-    return { accessToken, refreshToken, RefreshTokenExpiry };
+    return { accessToken, refreshToken, refreshExpiry };
   }
 
   async verifyAccessToken(token: string) {
