@@ -10,7 +10,12 @@ export const User = pgTable(
     name: varchar('name', { length: 255 }).notNull(),
     email: varchar('email', { length: 255 }).notNull().unique(),
     password: varchar('password', { length: 255 }).notNull(),
+    avatar: varchar('avatar', { length: 500 }),
+    deleted_at: timestamp('deleted_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
-  (table) => [index('idx_user_email').on(table.email)],
+  (table) => [
+    index('idx_user_email').on(table.email),
+    index('idx_user_deleted_at').on(table.deleted_at),
+  ],
 );
