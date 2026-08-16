@@ -23,9 +23,10 @@ sequenceDiagram
         A-->>C: 409 Conflict
     end
     A->>A: bcrypt.hash(password, salt 10)
+    A->>A: avatar = dicebear(seed = email)
     A->>U: create(user)
     U->>DB: INSERT INTO tbl_user
-    DB-->>U: user (id, name, email)
+    DB-->>U: user (id, name, email, avatar)
     A->>T: issueTokenPair(sub, email, jti)
     T-->>A: accessToken + refreshToken + refreshExpiry
     A->>A: set refreshToken cookie (httpOnly)
@@ -40,6 +41,7 @@ sequenceDiagram
 - Email uniqueness is checked before insert; duplicates get `409 Conflict`.
 - The user is logged in immediately after registration — a session is issued in the same request.
 - The response never contains the refresh token — it only travels in the cookie.
+- An avatar URL is generated at registration (`https://api.dicebear.com/10.x/avataaars/svg?seed=<email>`) and returned in the user object. It is not editable — see [users docs](../users/02-profile-management.md).
 
 ## Login (`POST /auth/login`)
 
@@ -115,7 +117,7 @@ sequenceDiagram
         alt user deleted
             A-->>C: 404 Not Found
         else
-            A-->>C: 200 { id, name, email, createdAt }
+            A-->>C: 200 { id, name, email, avatar, createdAt }
         end
     end
 ```

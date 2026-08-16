@@ -16,6 +16,7 @@ import { RefreshTokenService } from './services/refresh-token.service';
     RefreshTokenService,
     AuthGuard,
   ],
+  exports: [AuthGuard, TokenService, RefreshTokenService],
   controllers: [AuthController],
 })
 export class AuthModule {}

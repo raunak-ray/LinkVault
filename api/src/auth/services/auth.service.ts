@@ -14,6 +14,7 @@ import { Request, Response } from 'express';
 import { RefreshTokenService } from './refresh-token.service';
 import { JwtPayload } from '../interface/jwt-payload';
 import { randomUUID } from 'crypto';
+import { avatarUrl } from '../constant';
 
 const DUMMY_HASH =
   '$2b$10$CwTycUXWue0Thq9StjUM0uJ8X1XHd8DkVq8YfYkXo0D0D9mH3m2Vq';
@@ -40,9 +41,12 @@ export class AuthService {
     const SALT = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(input.password, SALT);
 
+    const avatar = avatarUrl + input.email;
+
     const user = await this.userService.create({
       ...input,
       password: hashedPassword,
+      avatar,
     });
 
     const { accessToken } = await this.issueSession(user.id, user.email, res);
@@ -166,6 +170,12 @@ export class AuthService {
   }
 
   async getSessions(userId: string) {
+    const user = await this.userService.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
     const sessions = await this.refreshTokenService.findActiveByUserId(userId);
 
     return sessions.map((session) => ({

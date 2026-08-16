@@ -53,7 +53,9 @@ erDiagram
         varchar name
         varchar email "unique"
         varchar password "bcrypt hash"
+        varchar avatar "dicebear URL, auto-generated"
         timestamp created_at
+        timestamp deleted_at "null = active"
     }
     REFRESH_TOKEN {
         uuid id PK "= JWT jti"
@@ -71,6 +73,7 @@ Key invariants:
 - The raw refresh token is **never stored**. Only its bcrypt hash is kept, so a DB leak cannot be replayed to forge sessions.
 - `revoked_at` is set, never deleted — revocation history is preserved for reuse detection.
 - Deleting a user cascades to their session rows (`ON DELETE CASCADE`).
+- Accounts are **soft deleted** (`deleted_at` set, row kept); deleted users are invisible to login and lookups. See the [users docs](../users/01-overview.md).
 
 ## Token lifecycle
 

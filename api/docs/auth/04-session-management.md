@@ -4,7 +4,7 @@ A **session** = one active row in `tbl_refresh_token`. Each login/register creat
 
 ## List sessions (`GET /auth/sessions`)
 
-Protected — requires a valid Bearer access token. Returns the caller's **active** (non-revoked, non-expired-in-DB) sessions.
+Protected — requires a valid Bearer access token. Returns the caller's **active** (non-revoked, non-expired-in-DB) sessions. A deleted account gets `404` — same behavior as `/auth/me`.
 
 ```mermaid
 sequenceDiagram
@@ -12,16 +12,24 @@ sequenceDiagram
     participant C as Client
     participant G as AuthGuard
     participant A as AuthService
+    participant U as UsersService
     participant R as RefreshTokenService
     participant DB as PostgreSQL
 
     C->>G: GET /auth/sessions + Bearer token
     G->>G: verify access token -> sub
     G->>A: getSessions(sub)
-    A->>R: findActiveByUserId(sub)
-    R->>DB: SELECT * WHERE user_id = ? AND revoked_at IS NULL
-    DB-->>R: sessions[]
-    A-->>C: 200 [{ id, createdAt, expiresAt }]
+    A->>U: findById(sub)
+    U->>DB: SELECT user WHERE id = ? AND deleted_at IS NULL
+    DB-->>U: user | null
+    alt user deleted
+        A-->>C: 404 Not Found
+    else user active
+        A->>R: findActiveByUserId(sub)
+        R->>DB: SELECT * WHERE user_id = ? AND revoked_at IS NULL
+        DB-->>R: sessions[]
+        A-->>C: 200 [{ id, createdAt, expiresAt }]
+    end
 ```
 
 Response shape (per session, inside the standard `data` envelope):
