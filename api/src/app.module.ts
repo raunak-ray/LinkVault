@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
     ]),
     DbModule,
     AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [
