@@ -3,12 +3,16 @@ import {
   IsNotEmpty,
   IsString,
   Matches,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 
 export class RegisterUserDto {
   @IsString()
   @IsNotEmpty()
+  @MaxLength(255, {
+    message: 'Name must be at most 255 characters long',
+  })
   name!: string;
 
   @IsEmail()

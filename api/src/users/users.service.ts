@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { eq, and, isNull } from 'drizzle-orm';
 import { DbProvider } from 'src/db/db.provider';
 import { User } from 'src/db/schema';
@@ -57,19 +62,43 @@ export class UsersService {
     const user = await this.findById(id);
 
     if (!user) {
+      this.logger.warn(`Profile update blocked: user not found (id: ${id})`);
       throw new NotFoundException(`User with id ${id} not found`);
+    }
+
+    const hasUpdates = Object.values(input).some(
+      (value) => value !== undefined,
+    );
+
+    if (!hasUpdates) {
+      throw new BadRequestException('At least one field must be provided');
     }
 
     const [updatedUser] = await this.dbProvider.db
       .update(User)
       .set(input)
-      .where(eq(User.id, id))
+      .where(and(eq(User.id, id), isNull(User.deleted_at)))
       .returning();
 
+    if (!updatedUser) {
+      this.logger.warn(`Profile update blocked: user not found (id: ${id})`);
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+
+    this.logger.log(`Profile updated (id: ${id})`);
     return this.mapUser(updatedUser);
   }
 
   async softDelete(id: string) {
+    const user = await this.findById(id);
+
+    if (!user) {
+      this.logger.warn(
+        `Account delete blocked: user not found or already deleted (id: ${id})`,
+      );
+      return;
+    }
+
     await this.dbProvider.db
       .update(User)
       .set({ deleted_at: new Date() })
@@ -77,6 +106,8 @@ export class UsersService {
       .returning();
 
     await this.refreshTokenService.revokeAllForUser(id);
+
+    this.logger.log(`Account deleted (id: ${id})`);
   }
 
   mapUser(user: typeof User.$inferSelect) {
