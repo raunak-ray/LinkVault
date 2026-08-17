@@ -9,9 +9,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { CurrentUser } from 'src/common/decorator/current-user.decorator';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { CollectionsService } from './collections.service';
-import { ResponseMessage } from 'src/common/decorator/response-message.decorator';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 

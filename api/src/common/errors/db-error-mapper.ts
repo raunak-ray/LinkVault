@@ -1,13 +1,9 @@
-import { PostgresError } from '../interface/db_error';
-import { DB_ERRORS } from './db-error';
+import { DbError } from '../interfaces/db-error.interface';
+import { PostgresError } from '../interfaces/postgres-error.interface';
+import { DB_ERRORS } from './db-errors';
 import { POSTGRES_ERRORS } from './postgres-errors';
 
-interface DbErrorResult {
-  statusCode: number;
-  message: string;
-}
-
-export function getDbError(error: PostgresError): DbErrorResult {
+export function getDbError(error: PostgresError): DbError {
   if (error.constraint) {
     const constraintError = DB_ERRORS[error.constraint];
 

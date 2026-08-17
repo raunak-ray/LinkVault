@@ -1,12 +1,7 @@
+import { DbError } from '../interfaces/db-error.interface';
 import { POSTGRES_ERROR_CODE } from './postgres-error-code';
 
-export const POSTGRES_ERRORS: Record<
-  string,
-  {
-    statusCode: number;
-    message: string;
-  }
-> = {
+export const POSTGRES_ERRORS: Record<string, DbError> = {
   [POSTGRES_ERROR_CODE.UNIQUE_VIOLATION]: {
     statusCode: 400,
     message: 'A record with this value already exists',
@@ -39,4 +34,4 @@ export const POSTGRES_ERRORS: Record<
     statusCode: 400,
     message: 'The datetime format is invalid',
   },
-} as const;
+};

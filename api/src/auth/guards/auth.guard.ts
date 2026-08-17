@@ -5,7 +5,7 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthenticatedRequest } from 'src/common/interface/authenticated-request';
+import { AuthenticatedRequest } from 'src/common/interfaces/authenticated-request.interface';
 import { TokenService } from '../services/token.service';
 
 @Injectable()

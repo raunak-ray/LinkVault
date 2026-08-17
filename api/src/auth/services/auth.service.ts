@@ -6,15 +6,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
-import { RegisterUserDto } from '../dto/register.dto';
+import { RegisterUserDto } from '../dto/register-user.dto';
 import * as bcrypt from 'bcrypt';
-import { LoginUserDto } from '../dto/login.dto';
+import { LoginUserDto } from '../dto/login-user.dto';
 import { TokenService } from './token.service';
 import { Request, Response } from 'express';
 import { RefreshTokenService } from './refresh-token.service';
-import { JwtPayload } from '../interface/jwt-payload';
+import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { randomUUID } from 'crypto';
-import { avatarUrl } from '../constant';
+import { AVATAR_URL } from '../constants';
 
 const DUMMY_HASH =
   '$2b$10$CwTycUXWue0Thq9StjUM0uJ8X1XHd8DkVq8YfYkXo0D0D9mH3m2Vq';
@@ -41,7 +41,7 @@ export class AuthService {
     const SALT = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(input.password, SALT);
 
-    const avatar = avatarUrl + input.email;
+    const avatar = AVATAR_URL + input.email;
 
     const user = await this.userService.create({
       ...input,

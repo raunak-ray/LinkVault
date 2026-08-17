@@ -1,9 +1,8 @@
-import { ConflictException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { and, eq } from 'drizzle-orm';
 import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { Collection } from 'src/db/schema';
-import { and } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 
 @Injectable()
@@ -13,27 +12,15 @@ export class CollectionsService {
   constructor(private readonly dbProvider: DbProvider) {}
 
   async create(userId: string, input: CreateCollectionDto) {
-    try {
-      const [collection] = await this.dbProvider.db
-        .insert(Collection)
-        .values({
-          user_id: userId,
-          ...input,
-        })
-        .returning();
-      return collection;
-    } catch (error: unknown) {
-      // const dbError = error as DbError;
-      // if (
-      //   dbError?.cause?.code === '23505' &&
-      //   dbError?.cause?.constraint === 'uq_collection_name_user'
-      // ) {
-      //   throw new ConflictException(
-      //     'A collection with this name already exists',
-      //   );
-      // }
-      throw error;
-    }
+    const [collection] = await this.dbProvider.db
+      .insert(Collection)
+      .values({
+        user_id: userId,
+        ...input,
+      })
+      .returning();
+
+    return collection;
   }
 
   async findByName(userId: string, name: string) {
@@ -74,7 +61,7 @@ export class CollectionsService {
       .returning();
 
     if (!updatedCollection) {
-      throw new Error('Collection not found');
+      throw new NotFoundException('Collection not found');
     }
 
     return updatedCollection;
@@ -89,7 +76,7 @@ export class CollectionsService {
     this.logger.log(`Deleted collection ${id} for user ${userId}`);
 
     if (!deletedCollection) {
-      throw new Error('Collection not found');
+      throw new NotFoundException('Collection not found');
     }
   }
 }

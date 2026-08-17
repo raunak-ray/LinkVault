@@ -7,8 +7,8 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { ApiResponse } from '../interface/api-response';
-import { RESPONSE_MESSAGE_KEY } from '../decorator/response-message.decorator';
+import { ApiResponse } from '../interfaces/api-response.interface';
+import { RESPONSE_MESSAGE_KEY } from '../decorators/response-message.decorator';
 import { Response } from 'express';
 
 const DEFAULT_MESSAGE = 'Request successful';
