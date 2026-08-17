@@ -9,17 +9,17 @@ import {
 export class CreateCollectionDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(3, { message: 'Name must be atleast 3 characters' })
-  @MaxLength(255, { message: 'Name must be within 255 characters' })
+  @MinLength(3, { message: 'name must be atleast 3 characters' })
+  @MaxLength(255, { message: 'name must be within 255 characters' })
   name!: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(100, { message: 'Icon must be within 100 characters' })
+  @MaxLength(100, { message: 'icon must be within 100 characters' })
   icon?: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(10, { message: 'Color must be within 10 characters' })
+  @MaxLength(10, { message: 'color must be within 10 characters' })
   color?: string;
 }

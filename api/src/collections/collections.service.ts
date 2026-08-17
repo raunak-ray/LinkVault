@@ -1,10 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { Collection } from 'src/db/schema';
-import { and } from 'drizzle-orm';
+import { and, DrizzleError } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
+import { DbError } from 'src/common/interface/db_error';
 
 @Injectable()
 export class CollectionsService {
@@ -13,14 +14,27 @@ export class CollectionsService {
   constructor(private readonly dbProvider: DbProvider) {}
 
   async create(userId: string, input: CreateCollectionDto) {
-    const [collection] = await this.dbProvider.db
-      .insert(Collection)
-      .values({
-        user_id: userId,
-        ...input,
-      })
-      .returning();
-    return collection;
+    try {
+      const [collection] = await this.dbProvider.db
+        .insert(Collection)
+        .values({
+          user_id: userId,
+          ...input,
+        })
+        .returning();
+      return collection;
+    } catch (error: unknown) {
+      const dbError = error as DbError;
+      if (
+        dbError?.cause?.code === '23505' &&
+        dbError?.cause?.constraint === 'uq_collection_name_user'
+      ) {
+        throw new ConflictException(
+          'A collection with this name already exists',
+        );
+      }
+      throw error;
+    }
   }
 
   async findByName(userId: string, name: string) {
@@ -32,11 +46,11 @@ export class CollectionsService {
     return collection;
   }
 
-  async findById(id: string) {
+  async findById(userId: string, id: string) {
     const [collection] = await this.dbProvider.db
       .select()
       .from(Collection)
-      .where(eq(Collection.id, id));
+      .where(and(eq(Collection.id, id), eq(Collection.user_id, userId)));
 
     return collection;
   }
