@@ -1,6 +1,6 @@
-export type DbError = {
-  cause?: {
-    code?: string;
-    constraint?: string;
-  };
-};
+export interface PostgresError {
+  cause?: string;
+  code?: string;
+  constraint?: string;
+  table?: string;
+}

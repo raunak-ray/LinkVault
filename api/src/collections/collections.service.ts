@@ -2,10 +2,9 @@ import { ConflictException, Injectable, Logger } from '@nestjs/common';
 import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { Collection } from 'src/db/schema';
-import { and, DrizzleError } from 'drizzle-orm';
+import { and } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
-import { DbError } from 'src/common/interface/db_error';
 
 @Injectable()
 export class CollectionsService {
@@ -24,15 +23,15 @@ export class CollectionsService {
         .returning();
       return collection;
     } catch (error: unknown) {
-      const dbError = error as DbError;
-      if (
-        dbError?.cause?.code === '23505' &&
-        dbError?.cause?.constraint === 'uq_collection_name_user'
-      ) {
-        throw new ConflictException(
-          'A collection with this name already exists',
-        );
-      }
+      // const dbError = error as DbError;
+      // if (
+      //   dbError?.cause?.code === '23505' &&
+      //   dbError?.cause?.constraint === 'uq_collection_name_user'
+      // ) {
+      //   throw new ConflictException(
+      //     'A collection with this name already exists',
+      //   );
+      // }
       throw error;
     }
   }
