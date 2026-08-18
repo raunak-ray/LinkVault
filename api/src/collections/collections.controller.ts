@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -15,7 +14,8 @@ import { CollectionsService } from './collections.service';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
-import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { PaginationParams } from 'src/common/pagination/pagination.decorator';
+import { type Pagination } from 'src/common/pagination/pagination.interface';
 
 @Controller('collections')
 @UseGuards(AuthGuard)
@@ -26,11 +26,9 @@ export class CollectionsController {
   @ResponseMessage('Collections fetched successfully')
   async getCollections(
     @CurrentUser('sub') sub: string,
-    @Query() paginationInput: PaginationDto,
+    @PaginationParams() paginationInput: Pagination,
   ) {
-    const data = await this.collectionService.findAll(sub, paginationInput);
-
-    return data;
+    return await this.collectionService.findAll(sub, paginationInput);
   }
 
   @Get(':id')
@@ -39,9 +37,7 @@ export class CollectionsController {
     @CurrentUser('sub') sub: string,
     @Param('id') id: string,
   ) {
-    const data = await this.collectionService.findById(sub, id);
-
-    return data;
+    return await this.collectionService.findById(sub, id);
   }
 
   @Post()
@@ -50,9 +46,7 @@ export class CollectionsController {
     @CurrentUser('sub') sub: string,
     @Body() input: CreateCollectionDto,
   ) {
-    const data = await this.collectionService.create(sub, input);
-
-    return data;
+    return await this.collectionService.create(sub, input);
   }
 
   @Patch(':id')
@@ -62,9 +56,7 @@ export class CollectionsController {
     @Param('id') id: string,
     @Body() input: UpdateCollectionDto,
   ) {
-    const data = await this.collectionService.update(sub, id, input);
-
-    return data;
+    return await this.collectionService.update(sub, id, input);
   }
 
   @Delete(':id')

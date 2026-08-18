@@ -40,7 +40,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
           exception.stack,
         );
       } else {
-        this.logger.warn(`Request failed: ${method} ${path} - ${status}`);
+        this.logger.warn(
+          `Request failed: ${method} ${request.originalUrl} - ${status}`,
+        );
       }
 
       response.status(status).json({

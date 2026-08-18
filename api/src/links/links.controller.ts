@@ -15,6 +15,8 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { MarkFavouriteDto } from './dto/mark-favourite.dto';
+import { PaginationParams } from 'src/common/pagination/pagination.decorator';
+import { type Pagination } from 'src/common/pagination/pagination.interface';
 
 @UseGuards(AuthGuard)
 @Controller('links')
@@ -29,8 +31,11 @@ export class LinksController {
 
   @Get()
   @ResponseMessage('Links retrieved successfully')
-  async findAll(@CurrentUser('sub') sub: string) {
-    return await this.linksService.findAll(sub);
+  async findAll(
+    @CurrentUser('sub') sub: string,
+    @PaginationParams() pagination: Pagination,
+  ) {
+    return await this.linksService.findAll(sub, pagination);
   }
 
   @Get(':id')

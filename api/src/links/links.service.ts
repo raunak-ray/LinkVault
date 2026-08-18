@@ -11,6 +11,9 @@ import { Link } from 'src/db/schema';
 import { and } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 import { MarkFavouriteDto } from './dto/mark-favourite.dto';
+import { Pagination } from 'src/common/pagination/pagination.interface';
+import { PaginationResponse } from 'src/common/pagination/pagination-response.interface';
+import { count } from 'drizzle-orm';
 
 @Injectable()
 export class LinksService {
@@ -32,13 +35,33 @@ export class LinksService {
     return link;
   }
 
-  async findAll(userId: string) {
-    const links = await this.dbProvider.db
-      .select()
-      .from(Link)
-      .where(eq(Link.user_id, userId));
+  async findAll(
+    userId: string,
+    { page, limit, offset }: Pagination,
+  ): Promise<PaginationResponse<typeof Link.$inferSelect>> {
+    const where = eq(Link.user_id, userId);
 
-    return links;
+    const [links, [{ total }]] = await Promise.all([
+      this.dbProvider.db
+        .select()
+        .from(Link)
+        .where(where)
+        .limit(limit)
+        .offset(offset),
+
+      this.dbProvider.db.select({ total: count() }).from(Link).where(where),
+    ]);
+
+    return {
+      data: links,
+      meta: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        hasNextPage: offset + limit < total,
+        hasPreviousPage: offset > 0,
+      },
+    };
   }
 
   async findById(userId: string, id: string) {
