@@ -20,6 +20,7 @@ export const Collection = pgTable(
       .defaultNow(),
   },
   (table) => [
+    unique('uq_collection_id_user').on(table.id, table.user_id),
     unique('uq_collection_name_user').on(table.name, table.user_id),
     index('idx_collection_user_id').on(table.user_id),
   ],

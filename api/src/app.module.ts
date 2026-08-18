@@ -10,6 +10,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { UsersModule } from './users/users.module';
 import { CollectionsModule } from './collections/collections.module';
+import { LinksModule } from './links/links.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CollectionsModule } from './collections/collections.module';
     AuthModule,
     UsersModule,
     CollectionsModule,
+    LinksModule,
   ],
   controllers: [AppController],
   providers: [
