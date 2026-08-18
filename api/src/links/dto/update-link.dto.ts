@@ -1,4 +1,15 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateLinkDto } from './create-link.dto';
+import { IsOptional, IsString } from 'class-validator';
 
-export class UpdateLinkDto extends PartialType(CreateLinkDto) {}
+export class UpdateLinkDto {
+  @IsString()
+  @IsOptional()
+  url?: string;
+
+  @IsString()
+  @IsOptional()
+  title?: string;
+
+  @IsString()
+  @IsOptional()
+  collectionId?: string;
+}
