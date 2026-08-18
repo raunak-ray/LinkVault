@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -14,6 +15,7 @@ import { CollectionsService } from './collections.service';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('collections')
 @UseGuards(AuthGuard)
@@ -22,8 +24,11 @@ export class CollectionsController {
 
   @Get()
   @ResponseMessage('Fetched all collections')
-  async getCollections(@CurrentUser('sub') sub: string) {
-    const data = await this.collectionService.findAll(sub);
+  async getCollections(
+    @CurrentUser('sub') sub: string,
+    @Query() paginationInput: PaginationDto,
+  ) {
+    const data = await this.collectionService.findAll(sub, paginationInput);
 
     return data;
   }
@@ -69,5 +74,7 @@ export class CollectionsController {
     @Param('id') id: string,
   ) {
     await this.collectionService.delete(sub, id);
+
+    return null;
   }
 }

@@ -4,6 +4,10 @@ import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { Collection } from 'src/db/schema';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { Pagination } from 'src/common/utils/pagination';
+import { count } from 'drizzle-orm';
+import { PaginatedResponse } from 'src/common/interfaces/paginated-response.interface';
 
 @Injectable()
 export class CollectionsService {
@@ -41,13 +45,39 @@ export class CollectionsService {
     return collection;
   }
 
-  async findAll(userId: string) {
-    const collections = await this.dbProvider.db
-      .select()
-      .from(Collection)
-      .where(eq(Collection.user_id, userId));
+  async findAll(
+    userId: string,
+    paginationInput: PaginationDto,
+  ): Promise<PaginatedResponse<typeof Collection.$inferSelect>> {
+    const { skip, limit, page } = Pagination(
+      paginationInput.page,
+      paginationInput.limit,
+    );
 
-    return collections;
+    const [collections, [{ total }]] = await Promise.all([
+      this.dbProvider.db
+        .select()
+        .from(Collection)
+        .where(eq(Collection.user_id, userId))
+        .limit(limit)
+        .offset(skip),
+
+      this.dbProvider.db
+        .select({ total: count() })
+        .from(Collection)
+        .where(eq(Collection.user_id, userId)),
+    ]);
+
+    return {
+      data: collections,
+      meta: {
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+        hasNextPage: total > skip + limit,
+        hasPreviousPage: page > 1,
+      },
+    };
   }
 
   async update(userId: string, id: string, input: UpdateCollectionDto) {
