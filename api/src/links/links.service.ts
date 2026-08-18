@@ -1,10 +1,16 @@
-import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
 import { DbProvider } from 'src/db/db.provider';
 import { Link } from 'src/db/schema';
 import { and } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
+import { MarkFavouriteDto } from './dto/mark-favourite.dto';
 
 @Injectable()
 export class LinksService {
@@ -36,7 +42,7 @@ export class LinksService {
   }
 
   async findById(userId: string, id: string) {
-    const link = await this.dbProvider.db
+    const [link] = await this.dbProvider.db
       .select()
       .from(Link)
       .where(and(eq(Link.id, id), eq(Link.user_id, userId)))
@@ -53,7 +59,7 @@ export class LinksService {
 
     if (Object.keys(values).length === 0) {
       this.logger.log(`No values to update for link ${id}`);
-      throw new BadRequestException(`No values to update for link ${id}`);
+      throw new BadRequestException(`No values to update`);
     }
 
     const [link] = await this.dbProvider.db
@@ -81,5 +87,23 @@ export class LinksService {
     }
 
     this.logger.log(`Deleted link ${id} for user ${userId}`);
+  }
+
+  async markFavourite(userId: string, id: string, input: MarkFavouriteDto) {
+    const [link] = await this.dbProvider.db
+      .update(Link)
+      .set({
+        is_favourite: input.isFavourite,
+        updated_at: new Date(),
+      })
+      .where(and(eq(Link.id, id), eq(Link.user_id, userId)))
+      .returning();
+
+    if (!link) {
+      this.logger.log(`Link ${id} not found for user ${userId}`);
+      throw new NotFoundException(`Link ${id} not found`);
+    }
+
+    return link;
   }
 }

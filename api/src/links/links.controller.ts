@@ -6,37 +6,64 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { LinksService } from './links.service';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
+import { MarkFavouriteDto } from './dto/mark-favourite.dto';
 
+@UseGuards(AuthGuard)
 @Controller('links')
 export class LinksController {
   constructor(private readonly linksService: LinksService) {}
 
   @Post()
-  create(@Body() createLinkDto: CreateLinkDto) {
-    return this.linksService.create(createLinkDto);
+  @ResponseMessage('Link created successfully')
+  async create(@Body() input: CreateLinkDto, @CurrentUser('sub') sub: string) {
+    return await this.linksService.create(sub, input);
   }
 
   @Get()
-  findAll() {
-    return this.linksService.findAll();
+  @ResponseMessage('Links retrieved successfully')
+  async findAll(@CurrentUser('sub') sub: string) {
+    return await this.linksService.findAll(sub);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.linksService.findOne(+id);
+  @ResponseMessage('Link retrieved successfully')
+  async findOne(@Param('id') id: string, @CurrentUser('sub') sub: string) {
+    return await this.linksService.findById(sub, id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateLinkDto: UpdateLinkDto) {
-    return this.linksService.update(+id, updateLinkDto);
+  @ResponseMessage('Link updated successfully')
+  async update(
+    @Param('id') id: string,
+    @Body() input: UpdateLinkDto,
+    @CurrentUser('sub') sub: string,
+  ) {
+    return await this.linksService.update(id, sub, input);
+  }
+
+  @Patch('favourite/:id')
+  @ResponseMessage('Link marked as favourite successfully')
+  async markFavourite(
+    @Param('id') id: string,
+    @Body() input: MarkFavouriteDto,
+    @CurrentUser('sub') sub: string,
+  ) {
+    return await this.linksService.markFavourite(sub, id, input);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.linksService.remove(+id);
+  @ResponseMessage('Link deleted successfully')
+  async remove(@Param('id') id: string, @CurrentUser('sub') sub: string) {
+    await this.linksService.delete(sub, id);
+
+    return null;
   }
 }
