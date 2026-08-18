@@ -6,10 +6,11 @@ import {
 } from '@nestjs/common';
 import { eq, and, isNull } from 'drizzle-orm';
 import { DbProvider } from 'src/db/db.provider';
-import { User } from 'src/db/schema';
+import { Collection, User } from 'src/db/schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RefreshTokenService } from 'src/auth/services/refresh-token.service';
+import { DEFAULT_COLLECTION } from 'src/collections/constants';
 
 @Injectable()
 export class UsersService {
@@ -50,12 +51,18 @@ export class UsersService {
   }
 
   async create(input: CreateUserDto) {
-    const [user] = await this.dbProvider.db
-      .insert(User)
-      .values(input)
-      .returning();
+    return this.dbProvider.db.transaction(async (t) => {
+      const [user] = await t.insert(User).values(input).returning();
 
-    return this.mapUser(user);
+      await t.insert(Collection).values({
+        user_id: user.id,
+        name: DEFAULT_COLLECTION.name,
+        icon: DEFAULT_COLLECTION.icon,
+        color: DEFAULT_COLLECTION.color,
+      });
+
+      return this.mapUser(user);
+    });
   }
 
   async update(id: string, input: UpdateUserDto) {
@@ -71,6 +78,7 @@ export class UsersService {
     );
 
     if (!hasUpdates) {
+      this.logger.warn(`Profile update no-op: no fields provided (id: ${id})`);
       throw new BadRequestException('At least one field must be provided');
     }
 

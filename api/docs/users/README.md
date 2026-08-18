@@ -10,6 +10,7 @@ Profile management lives under `/users/*` and reuses the auth system for protect
 - There are exactly two capabilities: **update profile** (`PATCH /users/me`) and **delete account** (`DELETE /users/me`).
 - Accounts are **soft deleted**: the row is flagged with `deleted_at`, never physically removed. All of the user's sessions are revoked in the same request.
 - Avatars are auto-generated at registration (DiceBear, seeded by email) and are **not** editable.
+- Registration also creates a default **General** collection for the user, inside the same transaction — see the [collections docs](../collections/README.md).
 
 ## Response envelope
 
@@ -25,7 +26,7 @@ Identical to the auth endpoints — every **success** response with a body is wr
 ```
 
 - `PATCH /users/me` uses a custom message: `User profile updated successfully`.
-- `DELETE /users/me` returns `204 No Content` — no body, so the envelope does not apply.
+- `DELETE /users/me` returns the standard envelope with `data: null` (HTTP `200`) — there is no deleted object in the response.
 
 ```mermaid
 flowchart LR

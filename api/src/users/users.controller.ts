@@ -1,17 +1,9 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  HttpCode,
-  HttpStatus,
-  Patch,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Patch, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { CurrentUser } from 'src/common/decorator/current-user.decorator';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ResponseMessage } from 'src/common/decorator/response-message.decorator';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -30,9 +22,11 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard)
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @ResponseMessage('Account deleted successfully')
   @Delete('me')
   async deleteMe(@CurrentUser('sub') sub: string) {
     await this.userService.softDelete(sub);
+
+    return null;
   }
 }

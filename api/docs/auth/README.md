@@ -24,7 +24,7 @@ Every **success** response has the same shape (enforced by a global `TransformIn
 
 - `statusCode` mirrors the HTTP status (e.g. `201` on register).
 - `message` is per-endpoint via `@ResponseMessage()`; endpoints without one default to `Request successful`.
-- Errors keep Nest's default error shape for now (`{ message, error, statusCode }`).
+- Errors go through the global exception filter: `{ success: false, statusCode, message, timestamp, path, method }` — with `success: false` so clients can branch on one field.
 
 ```mermaid
 flowchart LR

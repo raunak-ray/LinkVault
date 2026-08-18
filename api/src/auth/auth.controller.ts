@@ -11,12 +11,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { RegisterUserDto } from './dto/register.dto';
+import { RegisterUserDto } from './dto/register-user.dto';
 import { AuthService } from './services/auth.service';
-import { LoginUserDto } from './dto/login.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 import { AuthGuard } from './guards/auth.guard';
-import { CurrentUser } from 'src/common/decorator/current-user.decorator';
-import { ResponseMessage } from 'src/common/decorator/response-message.decorator';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { type Request, type Response } from 'express';
 
 @Controller('auth')
@@ -71,6 +71,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard)
+  @ResponseMessage('Profile fetched successfully')
   @Get('me')
   async me(@CurrentUser('sub') sub: string) {
     const data = await this.authService.fetchMe(sub);
@@ -78,6 +79,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard)
+  @ResponseMessage('Sessions fetched successfully')
   @Get('sessions')
   async sessions(@CurrentUser('sub') sub: string) {
     const data = await this.authService.getSessions(sub);
