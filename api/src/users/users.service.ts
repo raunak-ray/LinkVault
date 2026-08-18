@@ -78,6 +78,7 @@ export class UsersService {
     );
 
     if (!hasUpdates) {
+      this.logger.warn(`Profile update no-op: no fields provided (id: ${id})`);
       throw new BadRequestException('At least one field must be provided');
     }
 

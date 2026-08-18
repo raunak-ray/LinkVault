@@ -25,7 +25,10 @@ sequenceDiagram
     A->>A: bcrypt.hash(password, salt 10)
     A->>A: avatar = dicebear(seed = email)
     A->>U: create(user)
+    U->>DB: BEGIN
     U->>DB: INSERT INTO tbl_user
+    U->>DB: INSERT INTO tbl_collection (default "General")
+    U->>DB: COMMIT
     DB-->>U: user (id, name, email, avatar)
     A->>T: issueTokenPair(sub, email, jti)
     T-->>A: accessToken + refreshToken + refreshExpiry
@@ -42,6 +45,7 @@ sequenceDiagram
 - The user is logged in immediately after registration — a session is issued in the same request.
 - The response never contains the refresh token — it only travels in the cookie.
 - An avatar URL is generated at registration (`https://api.dicebear.com/10.x/avataaars/svg?seed=<email>`) and returned in the user object. It is not editable — see [users docs](../users/02-profile-management.md).
+- Registration also creates a default **General** collection for the user — both inserts run in one transaction, so a user without a default collection cannot exist. See the [collections docs](../collections/README.md).
 
 ## Login (`POST /auth/login`)
 

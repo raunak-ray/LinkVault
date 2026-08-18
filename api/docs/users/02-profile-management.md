@@ -30,7 +30,7 @@ sequenceDiagram
         alt user not found / deleted
             U-->>C: 404 Not Found
         else no editable fields provided ({})
-            U-->>C: 200 { id, name, email, avatar, createdAt } (unchanged)
+            U-->>C: 400 Bad Request (empty body rejected)
         else valid update
             U->>DB: UPDATE tbl_user SET name WHERE id = sub AND deleted_at IS NULL
             DB-->>U: updated user
@@ -42,13 +42,13 @@ sequenceDiagram
 **Behavior notes**
 
 - The response is the **mapped** user — `password` is never present.
-- An empty body `{}` (or only `undefined` fields) is a **no-op**, not an error: the current profile is returned untouched. This keeps `PATCH` forgiving for clients that send partial state.
+- An empty body `{}` (or only `undefined` fields) is rejected with `400 Bad Request` — the API expects at least one field to update. A warning is logged so an empty `PATCH` is traceable (see [observability](03-observability.md)).
 - The update query also filters `deleted_at IS NULL`, so an account deleted concurrently cannot be resurrected mid-request; such a request gets `404`.
 - `avatar` is **not** editable — it is auto-generated from the email at registration.
 
 ## Delete account (`DELETE /users/me`)
 
-Soft delete: flags the row with `deleted_at` and revokes every active refresh session. Returns `204 No Content` — there is no response body.
+Soft delete: flags the row with `deleted_at` and revokes every active refresh session. Returns the standard envelope with `data: null` (HTTP `200`).
 
 ```mermaid
 sequenceDiagram
@@ -67,19 +67,19 @@ sequenceDiagram
         U->>DB: SELECT user WHERE id = sub AND deleted_at IS NULL
         DB-->>U: user | null
         alt user not found / already deleted
-            U-->>C: 204 No Content (idempotent)
+            U-->>C: 200 { success, statusCode, message, data: null } (idempotent)
         else user active
             U->>DB: UPDATE tbl_user SET deleted_at = now() WHERE id = sub
             U->>R: revokeAllForUser(sub)
             R->>DB: UPDATE all active sessions -> revoked
-            U-->>C: 204 No Content
+            U-->>C: 200 { success, statusCode, message, data: null }
         end
     end
 ```
 
 **Behavior notes**
 
-- **Idempotent by design**: deleting an already-deleted (or unknown) account still returns `204`. A double-click or a stale token from a deleted account cannot cause an error — a warning is logged server-side instead.
+- **Idempotent by design**: deleting an already-deleted (or unknown) account still succeeds — a double-click or a stale token from a deleted account cannot cause an error. The response is `200` with `data: null` either way; a warning is logged server-side when nothing was actually deleted.
 - **Immediate effect on sessions**: all refresh tokens are revoked in the same request, so the next refresh attempt fails with `401`. The client should drop local state and redirect to login.
 - **Access token grace period**: the access token remains cryptographically valid for up to its TTL (15m), but any protected lookup (`/auth/me`, profile routes) returns `404` because the user is filtered out. This trade-off is shared with the auth system — see [auth security trade-offs](../auth/05-security.md).
 - **After deletion**: login fails with the standard `401 Invalid credentials` (same dummy-hash timing defense as auth), and the email can be registered again.

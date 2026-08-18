@@ -11,7 +11,7 @@ import { Response } from 'express';
 
 import { ApiResponse } from '../interfaces/api-response.interface';
 import { RESPONSE_MESSAGE_KEY } from '../decorators/response-message.decorator';
-import { PaginatedMeta } from '../interfaces/paginated-response.interface';
+import { PaginatedMeta } from '../pagination/paginated-response.interface';
 
 const DEFAULT_MESSAGE = 'Request successful';
 

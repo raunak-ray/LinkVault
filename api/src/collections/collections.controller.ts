@@ -15,7 +15,7 @@ import { CollectionsService } from './collections.service';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
 
 @Controller('collections')
 @UseGuards(AuthGuard)
@@ -23,7 +23,7 @@ export class CollectionsController {
   constructor(private readonly collectionService: CollectionsService) {}
 
   @Get()
-  @ResponseMessage('Fetched all collections')
+  @ResponseMessage('Collections fetched successfully')
   async getCollections(
     @CurrentUser('sub') sub: string,
     @Query() paginationInput: PaginationDto,
@@ -34,7 +34,7 @@ export class CollectionsController {
   }
 
   @Get(':id')
-  @ResponseMessage('Fetched collection by id')
+  @ResponseMessage('Collection fetched successfully')
   async getCollectionById(
     @CurrentUser('sub') sub: string,
     @Param('id') id: string,
@@ -45,7 +45,7 @@ export class CollectionsController {
   }
 
   @Post()
-  @ResponseMessage('Collection created')
+  @ResponseMessage('Collection created successfully')
   async createCollection(
     @CurrentUser('sub') sub: string,
     @Body() input: CreateCollectionDto,
@@ -56,7 +56,7 @@ export class CollectionsController {
   }
 
   @Patch(':id')
-  @ResponseMessage('Collection updated')
+  @ResponseMessage('Collection updated successfully')
   async updateCollection(
     @CurrentUser('sub') sub: string,
     @Param('id') id: string,

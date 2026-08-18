@@ -9,7 +9,7 @@ import {
 export class CreateCollectionDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(3, { message: 'name must be atleast 3 characters' })
+  @MinLength(3, { message: 'name must be at least 3 characters' })
   @MaxLength(255, { message: 'name must be within 255 characters' })
   name!: string;
 

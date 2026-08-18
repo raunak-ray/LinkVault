@@ -69,6 +69,10 @@ erDiagram
 | `PATCH` | `/users/me` | Bearer token | Update own profile (currently only `name`) |
 | `DELETE` | `/users/me` | Bearer token | Soft-delete own account, revoke all sessions |
 
+## Default collection
+
+`UsersService.create` (used by registration) runs **one transaction**: it inserts the user and a default collection named **General** (icon `Layers`, color `#6366F1`). If either insert fails, both are rolled back — a user without a default collection cannot exist. The default values live in `src/collections/constants/index.ts`; full details in the [collections docs](../collections/README.md).
+
 ## Soft-delete invariants
 
 - A deleted account is a row with `deleted_at` set — **nothing is ever physically removed**.
@@ -79,4 +83,4 @@ erDiagram
 
 ## Environment variables
 
-None specific to this module. The avatar URL is a hardcoded constant (`https://api.dicebear.com/10.x/avataaars/svg?seed=<email>` in `src/auth/constant/index.ts`) — change it there if the avatar provider changes.
+None specific to this module. The avatar URL is a hardcoded constant (`https://api.dicebear.com/10.x/avataaars/svg?seed=<email>` in `src/auth/constants/index.ts`) — change it there if the avatar provider changes.

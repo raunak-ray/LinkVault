@@ -4,10 +4,10 @@ import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { Collection } from 'src/db/schema';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
-import { PaginationDto } from 'src/common/dto/pagination.dto';
-import { Pagination } from 'src/common/utils/pagination';
+import { PaginationDto } from 'src/common/pagination/pagination.dto';
+import { Pagination } from 'src/common/pagination/pagination.util';
 import { count } from 'drizzle-orm';
-import { PaginatedResponse } from 'src/common/interfaces/paginated-response.interface';
+import { PaginatedResponse } from 'src/common/pagination/paginated-response.interface';
 
 @Injectable()
 export class CollectionsService {
@@ -23,6 +23,8 @@ export class CollectionsService {
         ...input,
       })
       .returning();
+
+    this.logger.log(`Collection created (id: ${collection.id})`);
 
     return collection;
   }
@@ -91,8 +93,13 @@ export class CollectionsService {
       .returning();
 
     if (!updatedCollection) {
+      this.logger.warn(
+        `Collection update blocked: collection not found (id: ${id})`,
+      );
       throw new NotFoundException('Collection not found');
     }
+
+    this.logger.log(`Collection updated (id: ${id})`);
 
     return updatedCollection;
   }
@@ -103,10 +110,13 @@ export class CollectionsService {
       .where(and(eq(Collection.id, id), eq(Collection.user_id, userId)))
       .returning();
 
-    this.logger.log(`Deleted collection ${id} for user ${userId}`);
-
     if (!deletedCollection) {
+      this.logger.warn(
+        `Collection delete blocked: collection not found (id: ${id})`,
+      );
       throw new NotFoundException('Collection not found');
     }
+
+    this.logger.log(`Collection deleted (id: ${id})`);
   }
 }
