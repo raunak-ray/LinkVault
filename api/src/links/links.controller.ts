@@ -17,6 +17,8 @@ import { ResponseMessage } from 'src/common/decorators/response-message.decorato
 import { MarkFavouriteDto } from './dto/mark-favourite.dto';
 import { PaginationParams } from 'src/common/pagination/pagination.decorator';
 import { type Pagination } from 'src/common/pagination/pagination.interface';
+import { SortingParams } from 'src/common/sorting/sorting.decorator';
+import { Sorting } from 'src/common/sorting/sorting.interface';
 
 @UseGuards(AuthGuard)
 @Controller('links')
@@ -34,8 +36,9 @@ export class LinksController {
   async findAll(
     @CurrentUser('sub') sub: string,
     @PaginationParams() pagination: Pagination,
+    @SortingParams(['createdAt']) sortingInput: Sorting[] | null,
   ) {
-    return await this.linksService.findAll(sub, pagination);
+    return await this.linksService.findAll(sub, pagination, sortingInput);
   }
 
   @Get(':id')
@@ -54,7 +57,7 @@ export class LinksController {
     return await this.linksService.update(id, sub, input);
   }
 
-  @Patch('favourite/:id')
+  @Patch(':id/favourite')
   @ResponseMessage('Link marked as favourite successfully')
   async markFavourite(
     @Param('id') id: string,

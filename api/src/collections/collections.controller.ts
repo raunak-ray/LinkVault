@@ -16,6 +16,8 @@ import { CreateCollectionDto } from './dto/create-collection.dto';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { PaginationParams } from 'src/common/pagination/pagination.decorator';
 import { type Pagination } from 'src/common/pagination/pagination.interface';
+import { SortingParams } from 'src/common/sorting/sorting.decorator';
+import { Sorting } from 'src/common/sorting/sorting.interface';
 
 @Controller('collections')
 @UseGuards(AuthGuard)
@@ -27,8 +29,13 @@ export class CollectionsController {
   async getCollections(
     @CurrentUser('sub') sub: string,
     @PaginationParams() paginationInput: Pagination,
+    @SortingParams(['createdAt', 'name']) sortingInput: Sorting[] | null,
   ) {
-    return await this.collectionService.findAll(sub, paginationInput);
+    return await this.collectionService.findAll(
+      sub,
+      paginationInput,
+      sortingInput,
+    );
   }
 
   @Get(':id')

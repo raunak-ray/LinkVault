@@ -8,12 +8,15 @@ import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
 import { DbProvider } from 'src/db/db.provider';
 import { Link } from 'src/db/schema';
-import { and } from 'drizzle-orm';
+import { and, desc } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 import { MarkFavouriteDto } from './dto/mark-favourite.dto';
 import { Pagination } from 'src/common/pagination/pagination.interface';
 import { PaginationResponse } from 'src/common/pagination/pagination-response.interface';
 import { count } from 'drizzle-orm';
+import { Sorting } from 'src/common/sorting/sorting.interface';
+import { asc } from 'drizzle-orm';
+import { LinkSortingFields } from './constants';
 
 @Injectable()
 export class LinksService {
@@ -38,14 +41,24 @@ export class LinksService {
   async findAll(
     userId: string,
     { page, limit, offset }: Pagination,
+    sortingInput: Sorting[] | null,
   ): Promise<PaginationResponse<typeof Link.$inferSelect>> {
     const where = eq(Link.user_id, userId);
+
+    const sortOrders = sortingInput?.map((sort) => {
+      const sortingField =
+        LinkSortingFields[sort.field as keyof typeof LinkSortingFields];
+      const sortingOrder =
+        sort.order === 'asc' ? asc(sortingField) : desc(sortingField);
+      return sortingOrder;
+    });
 
     const [links, [{ total }]] = await Promise.all([
       this.dbProvider.db
         .select()
         .from(Link)
         .where(where)
+        .orderBy(...(sortOrders ?? [desc(Link.created_at)]))
         .limit(limit)
         .offset(offset),
 

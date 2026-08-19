@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { Collection } from 'src/db/schema';
@@ -7,6 +7,9 @@ import { UpdateCollectionDto } from './dto/update-collection.dto';
 import { count } from 'drizzle-orm';
 import { Pagination } from 'src/common/pagination/pagination.interface';
 import { PaginationResponse } from 'src/common/pagination/pagination-response.interface';
+import { Sorting } from 'src/common/sorting/sorting.interface';
+import { sortingFields } from './constants';
+import { asc } from 'drizzle-orm';
 
 @Injectable()
 export class CollectionsService {
@@ -49,14 +52,23 @@ export class CollectionsService {
   async findAll(
     userId: string,
     { page, limit, offset }: Pagination,
+    sortingInput?: Sorting[] | null,
   ): Promise<PaginationResponse<typeof Collection.$inferSelect>> {
     const where = eq(Collection.user_id, userId);
+
+    const sortOrders = sortingInput?.map((sort) => {
+      const sortField = sortingFields[sort.field as keyof typeof sortingFields];
+      const sortOrder = sort.order === 'asc' ? asc(sortField) : desc(sortField);
+
+      return sortOrder;
+    });
 
     const [collections, [{ total }]] = await Promise.all([
       this.dbProvider.db
         .select()
         .from(Collection)
         .where(where)
+        .orderBy(...(sortOrders ?? [desc(Collection.created_at)]))
         .limit(limit)
         .offset(offset),
 
