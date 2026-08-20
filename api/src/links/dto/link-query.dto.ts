@@ -7,11 +7,23 @@ export class LinkQueryDto {
   search?: string;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true')
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isFavourite?: boolean;
 
   @IsOptional()
   @IsString()
   collectionId?: string;
+
+  @IsOptional()
+  @IsString()
+  page?: string;
+
+  @IsOptional()
+  @IsString()
+  limit?: string;
+
+  @IsOptional()
+  @IsString()
+  sort?: string;
 }

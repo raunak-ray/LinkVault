@@ -10,6 +10,7 @@ import { PaginationResponse } from 'src/common/pagination/pagination-response.in
 import { Sorting } from 'src/common/sorting/sorting.interface';
 import { sortingFields } from './constants';
 import { asc } from 'drizzle-orm';
+import { CollectionResponse } from './interface/collection.interface';
 
 @Injectable()
 export class CollectionsService {
@@ -28,7 +29,7 @@ export class CollectionsService {
 
     this.logger.log(`Collection created (id: ${collection.id})`);
 
-    return collection;
+    return this.toCollectionResponse(collection);
   }
 
   async findByName(userId: string, name: string) {
@@ -37,7 +38,7 @@ export class CollectionsService {
       .from(Collection)
       .where(and(eq(Collection.user_id, userId), eq(Collection.name, name)));
 
-    return collection;
+    return this.toCollectionResponse(collection);
   }
 
   async findById(userId: string, id: string) {
@@ -46,14 +47,16 @@ export class CollectionsService {
       .from(Collection)
       .where(and(eq(Collection.id, id), eq(Collection.user_id, userId)));
 
-    return collection;
+    return collection !== undefined
+      ? this.toCollectionResponse(collection)
+      : undefined;
   }
 
   async findAll(
     userId: string,
     { page, limit, offset }: Pagination,
     sortingInput?: Sorting[] | null,
-  ): Promise<PaginationResponse<typeof Collection.$inferSelect>> {
+  ): Promise<PaginationResponse<CollectionResponse>> {
     const where = eq(Collection.user_id, userId);
 
     const sortOrders = sortingInput?.map((sort) => {
@@ -79,7 +82,9 @@ export class CollectionsService {
     ]);
 
     return {
-      data: collections,
+      data: collections.map((collection) =>
+        this.toCollectionResponse(collection),
+      ),
       meta: {
         total,
         totalPages: Math.ceil(total / limit),
@@ -109,7 +114,7 @@ export class CollectionsService {
 
     this.logger.log(`Collection updated (id: ${id})`);
 
-    return updatedCollection;
+    return this.toCollectionResponse(updatedCollection);
   }
 
   async delete(userId: string, id: string) {
@@ -126,5 +131,18 @@ export class CollectionsService {
     }
 
     this.logger.log(`Collection deleted (id: ${id})`);
+  }
+
+  private toCollectionResponse(
+    collection: typeof Collection.$inferSelect,
+  ): CollectionResponse {
+    return {
+      id: collection.id,
+      name: collection.name,
+      icon: collection.icon,
+      color: collection.color,
+      createdAt: collection.created_at,
+      updatedAt: collection.updated_at,
+    };
   }
 }

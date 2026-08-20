@@ -39,7 +39,7 @@ export class LinksController {
     @CurrentUser('sub') sub: string,
     @PaginationParams() pagination: Pagination,
     @Query() queryInput: LinkQueryDto,
-    @SortingParams(['createdAt']) sortingInput: Sorting[] | null,
+    @SortingParams(['createdAt', 'title']) sortingInput: Sorting[] | null,
   ) {
     return await this.linksService.findAll(
       sub,

@@ -7,6 +7,6 @@ export interface LinkResponse {
     id: string;
     name: string;
   };
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
