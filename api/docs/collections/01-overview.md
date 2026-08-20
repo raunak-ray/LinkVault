@@ -30,11 +30,11 @@ flowchart TB
 
 | Component | Responsibility |
 | --- | --- |
-| `CollectionsController` | HTTP layer for `/collections/*`; applies `AuthGuard` to every route; declares the response message per endpoint |
-| `CollectionsService` | All DB access for `tbl_collection`; owns create / list / get / update / delete |
+| `CollectionsController` | HTTP layer for `/collections/*`; applies `AuthGuard` to every route; binds `@PaginationParams()` and `@SortingParams()` on the list route; declares the response message per endpoint |
+| `CollectionsService` | All DB access for `tbl_collection`; owns create / list / get / update / delete; maps rows to camelCase responses |
 | `AuthGuard` | Reused from the auth module — validates the `Bearer` access token (see [auth overview](../auth/01-overview.md)) |
-| `Pagination` util | Shared helper (`src/common/pagination/pagination.util.ts`) that turns `page` / `limit` into `skip` / `limit` for SQL |
-| `PaginationDto` | Shared query DTO (`src/common/pagination/pagination.dto.ts`) — validates `page` / `limit` query params |
+| `@PaginationParams()` | Shared decorator (`src/common/pagination/pagination.decorator.ts`) — reads and validates `page` / `limit`, computes `offset` (see [03-pagination.md](03-pagination.md)) |
+| `@SortingParams()` | Shared decorator (`src/common/sorting/sorting.decorator.ts`) — parses `sort=field:asc|desc` and whitelists fields (see [03-pagination.md](03-pagination.md)) |
 | `TransformInterceptor` | Global — unwraps paginated service results into `data` + `meta` in the response envelope |
 
 > **Module wiring note:** `CollectionsModule` imports `AuthModule` to reuse `AuthGuard`. `CollectionsService` is provided only here.
@@ -76,7 +76,7 @@ Key invariants:
 
 | Method | Route | Auth | Description |
 | --- | --- | --- | --- |
-| `GET` | `/collections` | Bearer token | List own collections, paginated |
+| `GET` | `/collections` | Bearer token | List own collections — paginated and sortable |
 | `GET` | `/collections/:id` | Bearer token | Get one own collection |
 | `POST` | `/collections` | Bearer token | Create a collection |
 | `PATCH` | `/collections/:id` | Bearer token | Update one own collection |

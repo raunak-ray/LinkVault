@@ -4,13 +4,13 @@ This folder documents the collections feature of the LinkVault API. Same scenari
 
 ## System at a glance
 
-Collections live under `/collections/*` and are the first feature that uses the shared pagination utility:
+Collections live under `/collections/*` and were the first feature to use the shared pagination **and** sorting decorators (links reuse the same ones — see the [links docs](../links/README.md)):
 
 - Every endpoint is guarded by `AuthGuard` — a valid `Authorization: Bearer <accessToken>` header is required.
 - Every collection belongs to exactly one user. The owner comes from the token (`sub`), never from the request body or URL.
 - A user can create, list, update, and delete their own collections. Nothing here can touch another user's data.
 - Every user starts with a default **General** collection, created automatically at registration — see [when it is created](#the-default-collection).
-- `GET /collections` is paginated. The pagination shape is shared and documented in [03-pagination.md](03-pagination.md).
+- `GET /collections` is paginated and sortable via the shared `page` / `limit` / `sort` parameters — see [03-pagination.md](03-pagination.md).
 
 ## Response envelope
 
@@ -34,6 +34,8 @@ Same envelope as everywhere else, wrapped by the global `TransformInterceptor`. 
 
 Non-paginated endpoints return the envelope without `meta` (like `PATCH /users/me`).
 
+Collection payloads are **mapped to camelCase** before they leave the service — fields are `id`, `name`, `icon`, `color`, `createdAt`, and `updatedAt`. The raw `user_id` / `created_at` column names never reach the client.
+
 ## The default collection
 
 At registration, `UsersService` creates the user **and** a first collection named **General** (icon `Layers`, color `#6366F1`) inside a single database transaction — if either insert fails, both are rolled back. The default is defined in `src/collections/constants/index.ts`.
@@ -55,7 +57,7 @@ flowchart LR
 | --- | --- |
 | [01-overview.md](01-overview.md) | Components, data model, endpoints, ownership rules |
 | [02-collection-management.md](02-collection-management.md) | Create, list, get, update, delete — happy path and failures |
-| [03-pagination.md](03-pagination.md) | How pagination works: query params, defaults, response shape |
+| [03-pagination.md](03-pagination.md) | How pagination and sorting work: query params, defaults, response shape |
 | [04-observability.md](04-observability.md) | What is logged in the collections module, where, and why |
 
 ## How to read the flows

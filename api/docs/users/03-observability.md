@@ -1,6 +1,6 @@
 # 03 — Observability
 
-Same philosophy as the auth system: **log what you would search for later** — failures, security events, and lifecycle milestones. No per-request noise.
+Same philosophy as the auth system: **log what you would search for later** — failures, security events, and lifecycle milestones. In addition, every request to the API is recorded by a global access-log middleware (`RequestLoggingMiddleware`, scoped logger `HTTP`) — one line per request with `METHOD path statusCode durationMs user=<sub|anonymous>` — so traffic volume is always visible in the logs.
 
 ## Log map
 
@@ -17,7 +17,7 @@ All logs come from `UsersService` (scoped logger `UsersService`).
 ## Why these and not others
 
 - **PII discipline**: only user **ids** are logged — consistent with the auth module. The users module never receives an email it needs to log (the caller is identified by token, not email).
-- **No logging for**: successful reads, validation rejections (`400` from the global pipe), guard rejections (`401` — already logged by `AuthGuard` as `Access denied on ...`). Failures surface through the `401/404/400` responses and the warnings above.
+- **No module-level logging for**: successful reads, validation rejections (`400` from the global pipe), guard rejections (`401` — already logged by `AuthGuard` as `Access denied on ...`). Failures surface through the `401/404/400` responses and the warnings above. Every request still leaves one **global** `HTTP` access-log line.
 - **Idempotent deletes are visible**: a `200` for an unknown user is silently fine for the client, but the `WARN` makes it traceable (e.g. a stale access token probing a deleted account, or a double-delete).
 - **Empty-body updates are `WARN`**: the API rejects them with `400`, so the log records a client bug that the user sees as an error ("the save button did nothing").
 

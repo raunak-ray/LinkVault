@@ -1,6 +1,6 @@
 # 06 — Observability
 
-The logging philosophy is: **log what you would search for later** — failures, security events, and lifecycle milestones. No per-request noise, no "user clicked X" logs.
+The logging philosophy is: **log what you would search for later** — failures, security events, and lifecycle milestones. No "user clicked X" logs. In addition, every request to the API is recorded by a global access-log middleware (`RequestLoggingMiddleware`, scoped logger `HTTP`) — one line per request with `METHOD path statusCode durationMs user=<sub|anonymous>` — so traffic volume and rate-limit hits are always visible in the logs.
 
 ## Log map
 
@@ -22,7 +22,7 @@ The logging philosophy is: **log what you would search for later** — failures,
 
 - **PII discipline**: user **ids** are logged on success; emails appear only in **failed-attempt** logs (the attacker-chosen value, needed for investigation).
 - **No logging for**: `/me`, session listing, password hashing, cookie writes. They succeed silently; failures surface through `401/404` responses and the warnings above.
-- **Rate-limit hits are not logged** — bots will flood the log otherwise. They are visible as `429` responses in access logs.
+- **Rate-limit hits are not logged** as auth warnings — bots would flood the log. They are visible as `429` responses in the global `HTTP` access log.
 
 ## Reading the logs in practice
 

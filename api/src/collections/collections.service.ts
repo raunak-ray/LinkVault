@@ -1,13 +1,16 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
 import { Collection } from 'src/db/schema';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
-import { PaginationDto } from 'src/common/pagination/pagination.dto';
-import { Pagination } from 'src/common/pagination/pagination.util';
 import { count } from 'drizzle-orm';
-import { PaginatedResponse } from 'src/common/pagination/paginated-response.interface';
+import { Pagination } from 'src/common/pagination/pagination.interface';
+import { PaginationResponse } from 'src/common/pagination/pagination-response.interface';
+import { Sorting } from 'src/common/sorting/sorting.interface';
+import { sortingFields } from './constants';
+import { asc } from 'drizzle-orm';
+import { CollectionResponse } from './interface/collection.interface';
 
 @Injectable()
 export class CollectionsService {
@@ -26,7 +29,7 @@ export class CollectionsService {
 
     this.logger.log(`Collection created (id: ${collection.id})`);
 
-    return collection;
+    return this.toCollectionResponse(collection);
   }
 
   async findByName(userId: string, name: string) {
@@ -35,7 +38,7 @@ export class CollectionsService {
       .from(Collection)
       .where(and(eq(Collection.user_id, userId), eq(Collection.name, name)));
 
-    return collection;
+    return this.toCollectionResponse(collection);
   }
 
   async findById(userId: string, id: string) {
@@ -44,39 +47,49 @@ export class CollectionsService {
       .from(Collection)
       .where(and(eq(Collection.id, id), eq(Collection.user_id, userId)));
 
-    return collection;
+    return collection !== undefined
+      ? this.toCollectionResponse(collection)
+      : undefined;
   }
 
   async findAll(
     userId: string,
-    paginationInput: PaginationDto,
-  ): Promise<PaginatedResponse<typeof Collection.$inferSelect>> {
-    const { skip, limit, page } = Pagination(
-      paginationInput.page,
-      paginationInput.limit,
-    );
+    { page, limit, offset }: Pagination,
+    sortingInput?: Sorting[] | null,
+  ): Promise<PaginationResponse<CollectionResponse>> {
+    const where = eq(Collection.user_id, userId);
+
+    const sortOrders = sortingInput?.map((sort) => {
+      const sortField = sortingFields[sort.field as keyof typeof sortingFields];
+      const sortOrder = sort.order === 'asc' ? asc(sortField) : desc(sortField);
+
+      return sortOrder;
+    });
 
     const [collections, [{ total }]] = await Promise.all([
       this.dbProvider.db
         .select()
         .from(Collection)
-        .where(eq(Collection.user_id, userId))
+        .where(where)
+        .orderBy(...(sortOrders ?? [desc(Collection.created_at)]))
         .limit(limit)
-        .offset(skip),
+        .offset(offset),
 
       this.dbProvider.db
         .select({ total: count() })
         .from(Collection)
-        .where(eq(Collection.user_id, userId)),
+        .where(where),
     ]);
 
     return {
-      data: collections,
+      data: collections.map((collection) =>
+        this.toCollectionResponse(collection),
+      ),
       meta: {
         total,
         totalPages: Math.ceil(total / limit),
         currentPage: page,
-        hasNextPage: total > skip + limit,
+        hasNextPage: total > offset + limit,
         hasPreviousPage: page > 1,
       },
     };
@@ -101,7 +114,7 @@ export class CollectionsService {
 
     this.logger.log(`Collection updated (id: ${id})`);
 
-    return updatedCollection;
+    return this.toCollectionResponse(updatedCollection);
   }
 
   async delete(userId: string, id: string) {
@@ -118,5 +131,18 @@ export class CollectionsService {
     }
 
     this.logger.log(`Collection deleted (id: ${id})`);
+  }
+
+  private toCollectionResponse(
+    collection: typeof Collection.$inferSelect,
+  ): CollectionResponse {
+    return {
+      id: collection.id,
+      name: collection.name,
+      icon: collection.icon,
+      color: collection.color,
+      createdAt: collection.created_at,
+      updatedAt: collection.updated_at,
+    };
   }
 }
