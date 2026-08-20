@@ -43,6 +43,13 @@
       "when": 1787055163393,
       "tag": "0005_tan_boomer",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787221730152,
+      "tag": "0006_natural_dreadnoughts",
+      "breakpoints": true
     }
   ]
 }
