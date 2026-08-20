@@ -31,8 +31,8 @@ export const PaginationParams = createParamDecorator(
       );
     }
 
-    const offset = (page - 1) * limit;
     const maxLimit = limit > MAX_LIMIT ? MAX_LIMIT : limit;
+    const offset = (page - 1) * maxLimit;
 
     return { page, limit: maxLimit, offset };
   },

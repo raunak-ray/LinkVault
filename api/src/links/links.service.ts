@@ -7,7 +7,7 @@ import {
 import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
 import { DbProvider } from 'src/db/db.provider';
-import { Link } from 'src/db/schema';
+import { Collection, Link } from 'src/db/schema';
 import { and, desc } from 'drizzle-orm';
 import { eq } from 'drizzle-orm';
 import { MarkFavouriteDto } from './dto/mark-favourite.dto';
@@ -17,6 +17,9 @@ import { count } from 'drizzle-orm';
 import { Sorting } from 'src/common/sorting/sorting.interface';
 import { asc } from 'drizzle-orm';
 import { LinkSortingFields } from './constants';
+import { LinkQueryDto } from './dto/link-query.dto';
+import { like } from 'drizzle-orm';
+import { LinkResponse } from './interface/link.interface';
 
 @Injectable()
 export class LinksService {
@@ -42,8 +45,23 @@ export class LinksService {
     userId: string,
     { page, limit, offset }: Pagination,
     sortingInput: Sorting[] | null,
-  ): Promise<PaginationResponse<typeof Link.$inferSelect>> {
-    const where = eq(Link.user_id, userId);
+    queryInput: LinkQueryDto,
+  ): Promise<PaginationResponse<LinkResponse>> {
+    const conditions = [eq(Link.user_id, userId)];
+
+    if (queryInput.collectionId) {
+      conditions.push(eq(Link.collection_id, queryInput.collectionId));
+    }
+
+    if (queryInput.search) {
+      conditions.push(like(Link.title, `%${queryInput.search}%`));
+    }
+
+    if (queryInput.isFavourite !== undefined) {
+      conditions.push(eq(Link.is_favourite, queryInput.isFavourite));
+    }
+
+    const where = and(...conditions);
 
     const sortOrders = sortingInput?.map((sort) => {
       const sortingField =
@@ -55,9 +73,21 @@ export class LinksService {
 
     const [links, [{ total }]] = await Promise.all([
       this.dbProvider.db
-        .select()
+        .select({
+          id: Link.id,
+          title: Link.title,
+          url: Link.url,
+          isFavourite: Link.is_favourite,
+          collection: {
+            id: Collection.id,
+            name: Collection.name,
+          },
+          created_at: Link.created_at,
+          updated_at: Link.updated_at,
+        })
         .from(Link)
         .where(where)
+        .innerJoin(Collection, eq(Link.collection_id, Collection.id))
         .orderBy(...(sortOrders ?? [desc(Link.created_at)]))
         .limit(limit)
         .offset(offset),

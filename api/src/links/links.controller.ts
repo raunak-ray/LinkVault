@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { LinksService } from './links.service';
 import { CreateLinkDto } from './dto/create-link.dto';
@@ -19,6 +20,7 @@ import { PaginationParams } from 'src/common/pagination/pagination.decorator';
 import { type Pagination } from 'src/common/pagination/pagination.interface';
 import { SortingParams } from 'src/common/sorting/sorting.decorator';
 import { Sorting } from 'src/common/sorting/sorting.interface';
+import { LinkQueryDto } from './dto/link-query.dto';
 
 @UseGuards(AuthGuard)
 @Controller('links')
@@ -36,9 +38,15 @@ export class LinksController {
   async findAll(
     @CurrentUser('sub') sub: string,
     @PaginationParams() pagination: Pagination,
+    @Query() queryInput: LinkQueryDto,
     @SortingParams(['createdAt']) sortingInput: Sorting[] | null,
   ) {
-    return await this.linksService.findAll(sub, pagination, sortingInput);
+    return await this.linksService.findAll(
+      sub,
+      pagination,
+      sortingInput,
+      queryInput,
+    );
   }
 
   @Get(':id')
