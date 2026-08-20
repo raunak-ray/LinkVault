@@ -2,6 +2,8 @@
 
 All endpoints are protected by `AuthGuard` — they require a valid `Authorization: Bearer <accessToken>` header. The owner is always the caller (`sub` from the token); it never comes from the request body or URL.
 
+Every response is the **mapped** collection in camelCase — `{ id, name, icon, color, createdAt, updatedAt }`. The `user_id` / `created_at` column names never appear.
+
 ## Create (`POST /collections`)
 
 Payload:
@@ -35,7 +37,7 @@ sequenceDiagram
             S-->>C: 400 A collection with this name already exists
         else
             DB-->>S: created collection
-            S-->>C: 201 { id, user_id, name, icon, color, created_at, updated_at }
+            S-->>C: 201 { id, name, icon, color, createdAt, updatedAt }
         end
     end
 ```
@@ -43,11 +45,11 @@ sequenceDiagram
 **Behavior notes**
 
 - A duplicate name for the **same user** is rejected with `400` (the DB unique constraint is mapped to a friendly message — see [db error handling](../auth/README.md) for the error shape). The same name from a different user is fine.
-- The response contains the full row including `user_id`, `created_at`, and `updated_at`.
+- The response is the camelCase-mapped collection — no `user_id`, `created_at`, or `updated_at` in snake_case.
 
 ## List (`GET /collections`)
 
-Paginated list of the caller's collections, newest first is **not** guaranteed — the query has no explicit ordering. Pass `page` and `limit` as query params; both are optional (see [03-pagination.md](03-pagination.md) for defaults and shape).
+Paginated list of the caller's collections. Pass `page`, `limit`, and `sort` as query params; all are optional (see [03-pagination.md](03-pagination.md) for defaults, validation, and shape). Without a `sort` param the list is ordered by `created_at DESC` (newest first).
 
 ```mermaid
 sequenceDiagram
@@ -57,12 +59,12 @@ sequenceDiagram
     participant S as CollectionsService
     participant DB as PostgreSQL
 
-    C->>G: GET /collections?page=1&limit=10 + Bearer token
+    C->>G: GET /collections?page=1&limit=10&sort=createdAt:desc + Bearer token
     alt missing / invalid / expired token
         G-->>C: 401 Unauthorized
     else valid
         G-->>S: sub
-        S->>DB: SELECT ... WHERE user_id = sub LIMIT 10 OFFSET 0
+        S->>DB: SELECT ... WHERE user_id = sub ORDER BY created_at DESC LIMIT 10 OFFSET 0
         DB-->>S: page of collections
         S->>DB: SELECT count(*) WHERE user_id = sub
         DB-->>S: total
@@ -70,7 +72,7 @@ sequenceDiagram
     end
 ```
 
-Both queries run in parallel (`Promise.all`) — one for the page, one for the total count. The list is always owned by the caller, so a user can never see someone else's collections.
+Both queries run in parallel (`Promise.all`) — one for the page, one for the total count. Sorting is applied before pagination, and both are always scoped by the caller's `user_id`, so a user can never see someone else's collections.
 
 ## Get one (`GET /collections/:id`)
 
@@ -92,7 +94,7 @@ sequenceDiagram
         alt no such collection (or belongs to another user)
             S-->>C: 404 Collection not found
         else
-            S-->>C: 200 { id, user_id, name, icon, color, created_at, updated_at }
+            S-->>C: 200 { id, name, icon, color, createdAt, updatedAt }
         end
     end
 ```
@@ -124,7 +126,7 @@ sequenceDiagram
         alt no row updated (missing or owned by another user)
             S-->>C: 404 Collection not found
         else
-            S-->>C: 200 { id, user_id, name, icon, color, created_at, updated_at }
+            S-->>C: 200 { id, name, icon, color, createdAt, updatedAt }
         end
     end
 ```
