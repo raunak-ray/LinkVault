@@ -16,25 +16,49 @@ import { Sorting } from 'src/common/sorting/sorting.interface';
 import { LinkSortingFields } from './constants';
 import { LinkQueryDto } from './dto/link-query.dto';
 import { LinkResponse } from './interface/link.interface';
+import { LinkMetadata } from 'src/db/schema';
+import { MetadataProducerService } from 'src/metadata/metadata-producer.service';
+import { MetadataService } from 'src/metadata/metadata.service';
 
 @Injectable()
 export class LinksService {
   private readonly logger = new Logger(LinksService.name);
 
-  constructor(private readonly dbProvider: DbProvider) {}
+  constructor(
+    private readonly dbProvider: DbProvider,
+    private readonly metadataProducer: MetadataProducerService,
+    private readonly metadataService: MetadataService,
+  ) {}
 
   async create(userId: string, input: CreateLinkDto) {
-    const [link] = await this.dbProvider.db
-      .insert(Link)
-      .values({
-        title: input.title,
-        url: input.url,
-        user_id: userId,
-        collection_id: input.collectionId,
-      })
-      .returning();
+    const link = await this.dbProvider.db.transaction(async (tx) => {
+      const [createdLink] = await tx
+        .insert(Link)
+        .values({
+          title: input.title,
+          url: input.url,
+          user_id: userId,
+          collection_id: input.collectionId,
+        })
+        .returning();
+
+      await tx
+        .insert(LinkMetadata)
+        .values({
+          link_id: createdLink.id,
+          status: 'pending',
+        })
+        .onConflictDoNothing();
+
+      return createdLink;
+    });
 
     this.logger.log(`Created link ${link.id} for user ${userId}`);
+
+    await this.metadataProducer.enqueueExtraction({
+      linkId: link.id,
+      url: link.url,
+    });
 
     return this.toLinkResponse(link, await this.getCollection(userId, link));
   }
@@ -174,6 +198,14 @@ export class LinksService {
     }
 
     this.logger.log(`Updated link ${id} for user ${userId}`);
+
+    if (values.url !== undefined) {
+      await this.metadataService.resetToPending(link.id);
+      await this.metadataProducer.enqueueExtraction({
+        linkId: link.id,
+        url: link.url,
+      });
+    }
 
     return this.toLinkResponse(link, await this.getCollection(userId, link));
   }
