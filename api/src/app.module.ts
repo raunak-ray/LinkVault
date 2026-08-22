@@ -1,7 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DbModule } from './db/db.module';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -12,6 +12,8 @@ import { RequestLoggingMiddleware } from './common/middleware/request-logging.mi
 import { UsersModule } from './users/users.module';
 import { CollectionsModule } from './collections/collections.module';
 import { LinksModule } from './links/links.module';
+import { BullModule } from '@nestjs/bullmq';
+import { MetadataModule } from './metadata/metadata.module';
 
 @Module({
   imports: [
@@ -24,11 +26,21 @@ import { LinksModule } from './links/links.module';
         limit: 100,
       },
     ]),
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.get<string>('REDIS_HOST', 'localhost'),
+          port: config.get<number>('REDIS_PORT', 6379),
+        },
+      }),
+    }),
     DbModule,
     AuthModule,
     UsersModule,
     CollectionsModule,
     LinksModule,
+    MetadataModule,
   ],
   controllers: [AppController],
   providers: [
