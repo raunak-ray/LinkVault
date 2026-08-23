@@ -2,7 +2,7 @@
 
 All endpoints are protected by `AuthGuard` — they require a valid `Authorization: Bearer <accessToken>` header. The owner is always the caller (`sub` from the token); it never comes from the request body or URL.
 
-Every response is the **mapped** link in camelCase — `{ id, title, url, isFavourite, collection: { id, name }, createdAt, updatedAt }`. The `user_id` / `collection_id` / `is_favourite` column names never appear.
+Every response is the **mapped** link in camelCase — `{ id, title, url, isFavourite, collection: { id, name }, metadata: { status, description, favicon, ogImage }, createdAt, updatedAt }`. The `user_id` / `collection_id` / `is_favourite` column names never appear. The `metadata` block is filled asynchronously — see the [metadata docs](../metadata/02-extraction-pipeline.md).
 
 ## Create (`POST /links`)
 
@@ -25,20 +25,24 @@ sequenceDiagram
     participant G as AuthGuard
     participant S as LinksService
     participant DB as PostgreSQL
+    participant R as Redis (metadata queue)
 
     C->>G: POST /links + Bearer token
     alt missing / invalid / expired token
         G-->>C: 401 Unauthorized
     else valid
         G-->>S: sub
+        S->>DB: BEGIN
         S->>DB: INSERT INTO tbl_links (user_id, collection_id, url, title)
+        S->>DB: INSERT INTO tbl_link_metadata (link_id, status: pending)
+        S->>DB: COMMIT
         alt collection does not belong to user (composite FK)
             DB-->>S: foreign key violation
             S-->>C: 401 Invalid collection owner
         else
-            DB-->>S: created link
+            S->>R: enqueue metadata extraction job (after commit)
             S->>DB: SELECT collection name WHERE id = collectionId AND user_id = sub
-            S-->>C: 201 { id, title, url, isFavourite, collection: { id, name }, createdAt, updatedAt }
+            S-->>C: 201 { id, title, url, isFavourite, collection: { id, name }, metadata: { status: "pending", … }, createdAt, updatedAt }
         end
     end
 ```
@@ -47,6 +51,7 @@ sequenceDiagram
 
 - The composite FK `(collection_id, user_id)` guarantees the collection exists **and** belongs to the caller. Passing someone else's `collectionId` fails with `401 Invalid collection owner` via the DB-error mapper — not a generic `400`.
 - The response joins the collection name, so the client gets `collection: { id, name }` right after create.
+- The link and its `pending` metadata row are written in **one transaction** — a link can never exist without a metadata row. The extraction job is enqueued **after** the commit; if Redis is down at that moment the link still exists with a stuck `pending` metadata row (see the [metadata docs](../metadata/02-extraction-pipeline.md)).
 
 ## Get one (`GET /links/:id`)
 
@@ -111,6 +116,7 @@ sequenceDiagram
 - The single update query checks owner, so updating another user's link is impossible — same `404` as the get-by-id case.
 - An empty body `{}` is rejected with `400 No values to update` and a warning is logged.
 - If `collectionId` is changed, the composite FK is checked again — a collection that is not the caller's fails with `401 Invalid collection owner`.
+- If `url` is changed, the metadata row is reset to `pending` and a fresh extraction job is enqueued (see the [metadata docs](../metadata/02-extraction-pipeline.md)).
 - `updated_at` is always bumped to `now()`, even if the payload matches the current values.
 
 ## Mark favourite (`PATCH /links/:id/favourite`)

@@ -34,7 +34,7 @@ Same envelope as everywhere else, wrapped by the global `TransformInterceptor`. 
 
 Non-paginated endpoints return the envelope without `meta` (like `POST /links`).
 
-Link payloads are **mapped to camelCase** before they leave the service — fields are `id`, `title`, `url`, `isFavourite`, a nested `collection` object, `createdAt`, and `updatedAt`. The raw `user_id`, `collection_id`, and `is_favourite` column names never reach the client.
+Link payloads are **mapped to camelCase** before they leave the service — fields are `id`, `title`, `url`, `isFavourite`, a nested `collection` object, a nested `metadata` object (`status`, `description`, `favicon`, `ogImage` — populated in the background, see the [metadata docs](../metadata/README.md)), `createdAt`, and `updatedAt`. The raw `user_id`, `collection_id`, and `is_favourite` column names never reach the client.
 
 ```mermaid
 flowchart LR

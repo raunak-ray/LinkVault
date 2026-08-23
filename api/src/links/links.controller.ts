@@ -62,7 +62,7 @@ export class LinksController {
     @Body() input: UpdateLinkDto,
     @CurrentUser('sub') sub: string,
   ) {
-    return await this.linksService.update(id, sub, input);
+    return await this.linksService.update(sub, id, input);
   }
 
   @Patch(':id/favourite')
