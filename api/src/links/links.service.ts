@@ -8,35 +8,61 @@ import { and, asc, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { CreateLinkDto } from './dto/create-link.dto';
 import { UpdateLinkDto } from './dto/update-link.dto';
 import { DbProvider } from 'src/db/db.provider';
-import { Collection, Link } from 'src/db/schema';
+import { Collection, Link, LinkMetadata } from 'src/db/schema';
 import { MarkFavouriteDto } from './dto/mark-favourite.dto';
 import { Pagination } from 'src/common/pagination/pagination.interface';
 import { PaginationResponse } from 'src/common/pagination/pagination-response.interface';
 import { Sorting } from 'src/common/sorting/sorting.interface';
 import { LinkSortingFields } from './constants';
 import { LinkQueryDto } from './dto/link-query.dto';
-import { LinkResponse } from './interface/link.interface';
+import { LinkMetadataResponse, LinkResponse } from './interface/link.interface';
+import { MetadataProducerService } from 'src/metadata/metadata-producer.service';
+import { MetadataService } from 'src/metadata/metadata.service';
 
 @Injectable()
 export class LinksService {
   private readonly logger = new Logger(LinksService.name);
 
-  constructor(private readonly dbProvider: DbProvider) {}
+  constructor(
+    private readonly dbProvider: DbProvider,
+    private readonly metadataProducer: MetadataProducerService,
+    private readonly metadataService: MetadataService,
+  ) {}
 
   async create(userId: string, input: CreateLinkDto) {
-    const [link] = await this.dbProvider.db
-      .insert(Link)
-      .values({
-        title: input.title,
-        url: input.url,
-        user_id: userId,
-        collection_id: input.collectionId,
-      })
-      .returning();
+    const link = await this.dbProvider.db.transaction(async (tx) => {
+      const [createdLink] = await tx
+        .insert(Link)
+        .values({
+          title: input.title,
+          url: input.url,
+          user_id: userId,
+          collection_id: input.collectionId,
+        })
+        .returning();
+
+      await tx.insert(LinkMetadata).values({
+        link_id: createdLink.id,
+        status: 'pending',
+      });
+
+      return createdLink;
+    });
 
     this.logger.log(`Created link ${link.id} for user ${userId}`);
 
-    return this.toLinkResponse(link, await this.getCollection(userId, link));
+    await this.metadataProducer.enqueueExtraction({
+      linkId: link.id,
+      url: link.url,
+    });
+
+    // The metadata row was just created as pending in the same
+    // transaction — no need to read it back.
+    return this.toLinkResponse(
+      link,
+      await this.getCollection(userId, link),
+      this.pendingMetadata,
+    );
   }
 
   async findAll(
@@ -85,6 +111,7 @@ export class LinksService {
             id: Collection.id,
             name: Collection.name,
           },
+          metadata: this.metadataColumns,
           createdAt: Link.created_at,
           updatedAt: Link.updated_at,
         })
@@ -97,6 +124,9 @@ export class LinksService {
             eq(Collection.user_id, userId),
           ),
         )
+        // Every link is created with a metadata row in the same
+        // transaction, so the inner join always matches
+        .innerJoin(LinkMetadata, eq(LinkMetadata.link_id, Link.id))
         .orderBy(...(sortOrders ?? [desc(Link.created_at)]))
         .limit(limit)
         .offset(offset),
@@ -130,6 +160,7 @@ export class LinksService {
           id: Collection.id,
           name: Collection.name,
         },
+        metadata: this.metadataColumns,
         createdAt: Link.created_at,
         updatedAt: Link.updated_at,
       })
@@ -142,6 +173,7 @@ export class LinksService {
           eq(Collection.user_id, userId),
         ),
       )
+      .innerJoin(LinkMetadata, eq(LinkMetadata.link_id, Link.id))
       .limit(1);
 
     return link;
@@ -175,7 +207,25 @@ export class LinksService {
 
     this.logger.log(`Updated link ${id} for user ${userId}`);
 
-    return this.toLinkResponse(link, await this.getCollection(userId, link));
+    let metadata: LinkMetadataResponse = this.pendingMetadata;
+
+    if (values.url !== undefined) {
+      // Reset before enqueueing so a fast worker can never overwrite
+      // a stale reset with its completed result — or vice versa.
+      await this.metadataService.resetToPending(link.id);
+      await this.metadataProducer.enqueueExtraction({
+        linkId: link.id,
+        url: link.url,
+      });
+    } else {
+      metadata = await this.getMetadata(link.id);
+    }
+
+    return this.toLinkResponse(
+      link,
+      await this.getCollection(userId, link),
+      metadata,
+    );
   }
 
   async delete(userId: string, id: string) {
@@ -211,8 +261,27 @@ export class LinksService {
       `Marked link ${id} favourite=${input.isFavourite} for user ${userId}`,
     );
 
-    return this.toLinkResponse(link, await this.getCollection(userId, link));
+    const [collection, metadata] = await Promise.all([
+      this.getCollection(userId, link),
+      this.getMetadata(link.id),
+    ]);
+
+    return this.toLinkResponse(link, collection, metadata);
   }
+
+  private readonly pendingMetadata: LinkMetadataResponse = {
+    status: 'pending',
+    description: null,
+    favicon: null,
+    ogImage: null,
+  };
+
+  private readonly metadataColumns = {
+    status: LinkMetadata.status,
+    description: LinkMetadata.description,
+    favicon: LinkMetadata.favicon,
+    ogImage: LinkMetadata.og_image,
+  };
 
   private async getCollection(
     userId: string,
@@ -231,9 +300,21 @@ export class LinksService {
     return collection;
   }
 
+  // Every link has exactly one metadata row (created with the link),
+  // so this always resolves to a row.
+  private async getMetadata(linkId: string): Promise<LinkMetadataResponse> {
+    const [metadata] = await this.dbProvider.db
+      .select(this.metadataColumns)
+      .from(LinkMetadata)
+      .where(eq(LinkMetadata.link_id, linkId));
+
+    return metadata ?? this.pendingMetadata;
+  }
+
   private toLinkResponse(
     link: typeof Link.$inferSelect,
     collection: { id: string; name: string } | undefined,
+    metadata: LinkMetadataResponse,
   ): LinkResponse {
     return {
       id: link.id,
@@ -244,6 +325,7 @@ export class LinksService {
         id: collection?.id ?? link.collection_id,
         name: collection?.name ?? link.collection_id,
       },
+      metadata,
       createdAt: link.created_at,
       updatedAt: link.updated_at,
     };

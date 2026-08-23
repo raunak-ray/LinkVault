@@ -74,6 +74,7 @@ Key invariants:
 - `is_favourite` defaults to `false` and is a plain boolean — no separate favourite table.
 - `idx_link_user_created` keeps "all links of one user, newest first" queries fast; `idx_link_collection` covers the collection filter.
 - Links are **hard deleted**: `DELETE` removes the row. There is no soft-delete flag.
+- Every link has exactly one row in `tbl_link_metadata` (created in the same transaction, cascade-deleted with the link) that carries its extracted `description` / `favicon` / `og_image` and an extraction `status` — see the [metadata docs](../metadata/01-overview.md).
 - Nothing is ever read without a `user_id` filter — every query includes the owner, so one user can never see or change another user's links.
 
 ## Endpoints

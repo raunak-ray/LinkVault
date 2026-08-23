@@ -7,6 +7,14 @@ export interface LinkResponse {
     id: string;
     name: string;
   };
+  metadata: LinkMetadataResponse;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface LinkMetadataResponse {
+  status: 'pending' | 'completed' | 'failed';
+  description: string | null;
+  favicon: string | null;
+  ogImage: string | null;
 }

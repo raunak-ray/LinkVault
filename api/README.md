@@ -1,6 +1,6 @@
 # LinkVault API
 
-Backend for **LinkVault** — a bookmark manager. Built with [NestJS](https://nestjs.com), [Drizzle ORM](https://orm.drizzle.team), and PostgreSQL.
+Backend for **LinkVault** — a bookmark manager. Built with [NestJS](https://nestjs.com), [Drizzle ORM](https://orm.drizzle.team), PostgreSQL, and BullMQ (Redis).
 
 ## What it does
 
@@ -8,6 +8,7 @@ Backend for **LinkVault** — a bookmark manager. Built with [NestJS](https://ne
 - **Users** — update your own profile, soft-delete your account.
 - **Collections** — organize bookmarks into collections. CRUD, paginated + sortable listing, and a default **General** collection created at registration.
 - **Links** — the bookmarks themselves. CRUD, favourite flag, and a paginated list that supports sorting plus `search` / `isFavourite` / `collectionId` filters.
+- **Metadata** — automatic link enrichment. Creating a link queues a background job (BullMQ + Redis) that fetches the page and extracts `description`, `favicon`, and `og_image` with multiple fallbacks per field. A worker (concurrency 3, 3 attempts with exponential backoff) saves the result, and every link response carries a nested `metadata` object with its `status` (`pending` / `completed` / `failed`).
 
 Every success response uses the same envelope, enforced by a global interceptor:
 
@@ -34,6 +35,7 @@ Docs are written scenario-first — what happens, why, and how to debug it.
 | [docs/users](docs/users/README.md) | Profile management and account deletion |
 | [docs/collections](docs/collections/README.md) | Collection CRUD, pagination, sorting, logging |
 | [docs/links](docs/links/README.md) | Link CRUD, favourites, pagination/sorting/filtering, logging |
+| [docs/metadata](docs/metadata/README.md) | Background metadata extraction: queue, worker, fallbacks, retries, logging |
 
 ## Project structure
 
@@ -43,6 +45,7 @@ src/
 ├── users/         # profile update + soft delete, seeds the default collection on register
 ├── collections/   # collection CRUD with pagination and sorting
 ├── links/         # link CRUD, favourite flag, paginated/sortable/filterable listing
+├── metadata/      # background extraction: queue producer, worker (concurrency 3), extractor fallbacks, DB persistence
 ├── common/        # shared: pagination + sorting decorators, response envelope, exception filter, request-logging middleware
 └── db/            # schema, migrations, DB provider
 ```
@@ -62,6 +65,7 @@ Copy `.env.example`-style configuration into `.env` (or extend the existing one)
 | `REFRESH_SECRET` / `REFRESH_EXPIRY` | Refresh JWT secret and TTL (e.g. `1D`) |
 | `PORT` | API port (default `5050`) |
 | `CORS_ORIGIN` | Comma-separated allowed origins |
+| `REDIS_HOST` / `REDIS_PORT` | Redis for the metadata queue (default `localhost:6379`) |
 
 Apply database migrations:
 
@@ -70,6 +74,12 @@ $ npm run db:migrate
 ```
 
 ## Compile and run
+
+Start Redis first (the metadata queue and its worker need it — the worker runs inside the API process):
+
+```bash
+$ docker compose up -d   # from the repo root: starts Redis on localhost:6379
+```
 
 ```bash
 # development
