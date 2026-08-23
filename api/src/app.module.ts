@@ -14,6 +14,7 @@ import { CollectionsModule } from './collections/collections.module';
 import { LinksModule } from './links/links.module';
 import { BullModule } from '@nestjs/bullmq';
 import { MetadataModule } from './metadata/metadata.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { MetadataModule } from './metadata/metadata.module';
     CollectionsModule,
     LinksModule,
     MetadataModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
