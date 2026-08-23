@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DbProvider } from 'src/db/db.provider';
 import { DashboardResponse } from './interface/dashboard-response';
 import { Collection, Link, LinkMetadata } from 'src/db/schema';
-import { and, count } from 'drizzle-orm';
-import { eq } from 'drizzle-orm';
-import { desc } from 'drizzle-orm';
+import { and, count, eq, desc } from 'drizzle-orm';
 import { RECENT_COLLECTION_LIMIT, RECENT_LINKS_LIMIT } from './constant';
 
 @Injectable()
@@ -16,8 +14,8 @@ export class DashboardService {
       [{ totalLinks }],
       [{ totalCollections }],
       [{ totalFavouriteLinks }],
-      recentLinks,
-      recentCollections,
+      recentLinksRaw,
+      recentCollectionsRaw,
     ] = await Promise.all([
       this.dbProvider.db
         .select({ totalLinks: count() })
@@ -73,12 +71,22 @@ export class DashboardService {
         .limit(RECENT_COLLECTION_LIMIT),
     ]);
 
+    const recentLinks = recentLinksRaw.map((link) => ({
+      ...link,
+      metadata: {
+        status: link.metadata.status,
+        description: link.metadata.description,
+        favicon: link.metadata.favicon,
+        ogImage: link.metadata.ogImage,
+      },
+    }));
+
     return {
       totalLinks,
       totalCollections,
       totalFavouriteLinks,
       recentLinks,
-      recentCollections,
+      recentCollections: recentCollectionsRaw,
     };
   }
 }
