@@ -4,6 +4,17 @@ All endpoints are protected by `AuthGuard` — they require a valid `Authorizati
 
 Every response is the **mapped** collection in camelCase — `{ id, name, icon, color, createdAt, updatedAt }`. The `user_id` / `created_at` column names never appear.
 
+## Caching
+
+List (`GET /collections`) and single (`GET /collections/:id`) endpoints are cached in Redis using a read-through pattern with write-invalidation:
+
+| Endpoint | Cache Key | TTL | Invalidation |
+| --- | --- | --- | --- |
+| `GET /collections` | `collection:list:{userId}:p:{page}:l:{limit}:s:{sort}:{filters}` | 5 min | On any collection create/update/delete |
+| `GET /collections/:id` | `collection:{userId}:{id}` | 5 min | On that collection update/delete |
+
+Cache invalidation uses prefix deletion for list keys (`collection:list:{userId}:*`) and exact key deletion for single items. Cache operations are non-blocking — errors are logged and the request continues.
+
 ## Create (`POST /collections`)
 
 Payload:

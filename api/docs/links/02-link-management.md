@@ -4,6 +4,17 @@ All endpoints are protected by `AuthGuard` — they require a valid `Authorizati
 
 Every response is the **mapped** link in camelCase — `{ id, title, url, isFavourite, collection: { id, name }, metadata: { status, description, favicon, ogImage }, createdAt, updatedAt }`. The `user_id` / `collection_id` / `is_favourite` column names never appear. The `metadata` block is filled asynchronously — see the [metadata docs](../metadata/02-extraction-pipeline.md).
 
+## Caching
+
+List (`GET /links`) and single (`GET /links/:id`) endpoints are cached in Redis using a read-through pattern with write-invalidation:
+
+| Endpoint | Cache Key | TTL | Invalidation |
+| --- | --- | --- | --- |
+| `GET /links` | `link:list:{userId}:p:{page}:l:{limit}:s:{sort}:{filters}` | 5 min | On any link create/update/delete/favourite |
+| `GET /links/:id` | `link:{userId}:{linkId}` | 15 min | On that link update/delete/favourite |
+
+Cache invalidation uses prefix deletion for list keys (`link:list:{userId}:*`) and exact key deletion for single items. Cache operations are non-blocking — errors are logged and the request continues.
+
 ## Create (`POST /links`)
 
 Payload:

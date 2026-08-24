@@ -1,15 +1,37 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { DbProvider } from 'src/db/db.provider';
 import { DashboardResponse } from './interface/dashboard-response';
 import { Collection, Link, LinkMetadata } from 'src/db/schema';
 import { and, count, eq, desc } from 'drizzle-orm';
 import { RECENT_COLLECTION_LIMIT, RECENT_LINKS_LIMIT } from './constant';
+import { DASHBOARD_CACHE_KEY, DASHBOARD_CACHE_TTL } from './dashboard.cache';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { type Cache } from 'cache-manager';
+import { safeCacheGet, safeCacheSet } from 'src/common/utils/cache.utils';
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly dbProvider: DbProvider) {}
+  private readonly logger = new Logger(DashboardService.name);
+
+  constructor(
+    private readonly dbProvider: DbProvider,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   async getDashboardData(sub: string): Promise<DashboardResponse> {
+    const cacheKey = DASHBOARD_CACHE_KEY(sub);
+
+    const cachedData = await safeCacheGet<DashboardResponse>(
+      this.cacheManager,
+      cacheKey,
+      this.logger,
+      'dashboard',
+    );
+
+    if (cachedData) {
+      return cachedData;
+    }
+
     const [
       [{ totalLinks }],
       [{ totalCollections }],
@@ -81,12 +103,23 @@ export class DashboardService {
       },
     }));
 
-    return {
+    const data = {
       totalLinks,
       totalCollections,
       totalFavouriteLinks,
       recentLinks,
       recentCollections: recentCollectionsRaw,
     };
+
+    await safeCacheSet(
+      this.cacheManager,
+      cacheKey,
+      data,
+      DASHBOARD_CACHE_TTL,
+      this.logger,
+      'dashboard',
+    );
+
+    return data;
   }
 }

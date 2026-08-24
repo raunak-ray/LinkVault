@@ -10,6 +10,7 @@ sequenceDiagram
     participant C as Client
     participant G as AuthGuard
     participant S as DashboardService
+    participant Cache as Redis Cache
     participant DB as PostgreSQL
 
     C->>G: GET /dashboard + Bearer token
@@ -17,15 +18,22 @@ sequenceDiagram
         G-->>C: 401 Unauthorized
     else valid
         G-->>S: sub
-        par Parallel queries
-            S->>DB: SELECT count(*) FROM links WHERE user_id = sub
-            S->>DB: SELECT count(*) FROM collections WHERE user_id = sub
-            S->>DB: SELECT count(*) FROM links WHERE user_id = sub AND is_favourite = true
-            S->>DB: SELECT recent links (JOIN collection, metadata) ORDER BY updated_at DESC LIMIT 5
-            S->>DB: SELECT recent collections ORDER BY updated_at DESC LIMIT 5
+        S->>Cache: GET dashboard:{sub}
+        alt cache hit
+            Cache-->>S: cached data
+            S-->>C: 200 { totalLinks, totalCollections, totalFavouriteLinks, recentLinks[], recentCollections[] }
+        else cache miss
+            par Parallel queries
+                S->>DB: SELECT count(*) FROM links WHERE user_id = sub
+                S->>DB: SELECT count(*) FROM collections WHERE user_id = sub
+                S->>DB: SELECT count(*) FROM links WHERE user_id = sub AND is_favourite = true
+                S->>DB: SELECT recent links (JOIN collection, metadata) ORDER BY updated_at DESC LIMIT 5
+                S->>DB: SELECT recent collections ORDER BY updated_at DESC LIMIT 5
+            end
+            DB-->>S: all results
+            S->>Cache: SET dashboard:{sub} TTL 5min
+            S-->>C: 200 { totalLinks, totalCollections, totalFavouriteLinks, recentLinks[], recentCollections[] }
         end
-        DB-->>S: all results
-        S-->>C: 200 { totalLinks, totalCollections, totalFavouriteLinks, recentLinks[], recentCollections[] }
     end
 ```
 
@@ -36,6 +44,7 @@ sequenceDiagram
 - Links ordered by `updated_at DESC` so the most recently modified appear first
 - Collections ordered by `updated_at DESC`
 - Limits are constants: `RECENT_LINKS_LIMIT = 5`, `RECENT_COLLECTION_LIMIT = 5`
+- **Caching**: Response is cached in Redis for 5 minutes (`DASHBOARD_CACHE_TTL`). Cache key: `dashboard:{userId}`. Cache is invalidated on any link/collection create/update/delete.
 
 ## Response shape
 

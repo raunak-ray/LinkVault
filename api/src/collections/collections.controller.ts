@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
@@ -18,6 +19,7 @@ import { PaginationParams } from 'src/common/pagination/pagination.decorator';
 import { type Pagination } from 'src/common/pagination/pagination.interface';
 import { SortingParams } from 'src/common/sorting/sorting.decorator';
 import { Sorting } from 'src/common/sorting/sorting.interface';
+import { CollectionQueryDto } from './dto/collection-query.dto';
 
 @Controller('collections')
 @UseGuards(AuthGuard)
@@ -30,11 +32,13 @@ export class CollectionsController {
     @CurrentUser('sub') sub: string,
     @PaginationParams() paginationInput: Pagination,
     @SortingParams(['createdAt', 'name']) sortingInput: Sorting[] | null,
+    @Query() queryInput: CollectionQueryDto,
   ) {
     return await this.collectionService.findAll(
       sub,
       paginationInput,
       sortingInput,
+      queryInput,
     );
   }
 
