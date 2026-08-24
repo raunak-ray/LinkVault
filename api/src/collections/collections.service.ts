@@ -16,6 +16,8 @@ import { ilike } from 'drizzle-orm';
 import {
   COLLECTION_CACHE_TTL,
   COLLECTION_LIST_CACHE_KEY,
+  COLLECTION_LIST_PREFIX,
+  INDIVIDUAL_COLLECTION_CACHE_KEY,
 } from './collection.cache';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { type Cache } from 'cache-manager';
@@ -40,27 +42,50 @@ export class CollectionsService {
 
     this.logger.log(`Collection created (id: ${collection.id})`);
 
+    await this.deleteKeysByPrefix(userId);
+
     return this.toCollectionResponse(collection);
   }
 
-  async findByName(userId: string, name: string) {
+  async findByName(
+    userId: string,
+    name: string,
+  ): Promise<CollectionResponse | null> {
     const [collection] = await this.dbProvider.db
       .select()
       .from(Collection)
       .where(and(eq(Collection.user_id, userId), eq(Collection.name, name)));
 
+    if (!collection) {
+      return null;
+    }
+
     return this.toCollectionResponse(collection);
   }
 
-  async findById(userId: string, id: string) {
+  async findById(userId: string, id: string): Promise<CollectionResponse> {
+    const cacheKey = INDIVIDUAL_COLLECTION_CACHE_KEY(userId, id);
+
+    const cachedData =
+      await this.cacheManager.get<CollectionResponse>(cacheKey);
+
+    if (cachedData) {
+      return cachedData;
+    }
+
     const [collection] = await this.dbProvider.db
       .select()
       .from(Collection)
       .where(and(eq(Collection.id, id), eq(Collection.user_id, userId)));
 
-    return collection !== undefined
-      ? this.toCollectionResponse(collection)
-      : undefined;
+    if (!collection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    const data = this.toCollectionResponse(collection);
+    await this.cacheManager.set<CollectionResponse>(cacheKey, data);
+
+    return data;
   }
 
   async findAll(
@@ -156,6 +181,14 @@ export class CollectionsService {
 
     this.logger.log(`Collection updated (id: ${id})`);
 
+    const cacheKey = INDIVIDUAL_COLLECTION_CACHE_KEY(userId, id);
+
+    await Promise.all([
+      this.cacheManager.del(cacheKey),
+
+      this.deleteKeysByPrefix(userId),
+    ]);
+
     return this.toCollectionResponse(updatedCollection);
   }
 
@@ -172,6 +205,14 @@ export class CollectionsService {
       throw new NotFoundException('Collection not found');
     }
 
+    const cacheKey = INDIVIDUAL_COLLECTION_CACHE_KEY(userId, id);
+
+    await Promise.all([
+      this.cacheManager.del(cacheKey),
+
+      this.deleteKeysByPrefix(userId),
+    ]);
+
     this.logger.log(`Collection deleted (id: ${id})`);
   }
 
@@ -186,5 +227,41 @@ export class CollectionsService {
       createdAt: collection.created_at,
       updatedAt: collection.updated_at,
     };
+  }
+
+  private async deleteKeysByPrefix(userId: string) {
+    const prefix = `${COLLECTION_LIST_PREFIX}:${userId}:`;
+
+    const keyv = this.cacheManager.stores[0];
+
+    if (!keyv.iterator) {
+      this.logger.warn('Keyv store does not support iterator');
+      return;
+    }
+
+    const keysToDelete: string[] = [];
+
+    const iterator = keyv.iterator(undefined) as AsyncGenerator<
+      [string | undefined, unknown],
+      void
+    >;
+
+    for await (const entry of iterator) {
+      const key = entry[0];
+
+      this.logger.debug(`Iterator key: ${String(key)}`);
+
+      if (typeof key === 'string' && key.startsWith(prefix)) {
+        keysToDelete.push(key);
+      }
+    }
+
+    if (keysToDelete.length > 0) {
+      await keyv.delete(keysToDelete);
+    }
+
+    this.logger.debug(
+      `Deleted ${keysToDelete.length} collection list cache keys`,
+    );
   }
 }
