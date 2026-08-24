@@ -21,6 +21,7 @@ import {
 } from './collection.cache';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { type Cache } from 'cache-manager';
+import { DASHBOARD_CACHE_KEY } from 'src/dashboard/dashboard.cache';
 
 @Injectable()
 export class CollectionsService {
@@ -42,7 +43,11 @@ export class CollectionsService {
 
     this.logger.log(`Collection created (id: ${collection.id})`);
 
-    await this.deleteKeysByPrefix(userId);
+    await Promise.all([
+      this.deleteKeysByPrefix(userId),
+
+      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+    ]);
 
     return this.toCollectionResponse(collection);
   }
@@ -83,7 +88,11 @@ export class CollectionsService {
     }
 
     const data = this.toCollectionResponse(collection);
-    await this.cacheManager.set<CollectionResponse>(cacheKey, data);
+    await this.cacheManager.set<CollectionResponse>(
+      cacheKey,
+      data,
+      COLLECTION_CACHE_TTL,
+    );
 
     return data;
   }
@@ -187,6 +196,8 @@ export class CollectionsService {
       this.cacheManager.del(cacheKey),
 
       this.deleteKeysByPrefix(userId),
+
+      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
     ]);
 
     return this.toCollectionResponse(updatedCollection);
@@ -211,6 +222,8 @@ export class CollectionsService {
       this.cacheManager.del(cacheKey),
 
       this.deleteKeysByPrefix(userId),
+
+      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
     ]);
 
     this.logger.log(`Collection deleted (id: ${id})`);

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -18,6 +19,16 @@ import { LinkQueryDto } from './dto/link-query.dto';
 import { LinkMetadataResponse, LinkResponse } from './interface/link.interface';
 import { MetadataProducerService } from 'src/metadata/metadata-producer.service';
 import { MetadataService } from 'src/metadata/metadata.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { type Cache } from 'cache-manager';
+import {
+  INDIVIDUAL_LINK_CACHE_KEY,
+  LINK_CACHE_TTL,
+  LINK_LIST_CACHE_KEY,
+  LINK_LIST_CACHE_KEY_PREFIX,
+  LINK_LIST_CACHE_TTL,
+} from './links.cache';
+import { DASHBOARD_CACHE_KEY } from 'src/dashboard/dashboard.cache';
 
 @Injectable()
 export class LinksService {
@@ -27,6 +38,7 @@ export class LinksService {
     private readonly dbProvider: DbProvider,
     private readonly metadataProducer: MetadataProducerService,
     private readonly metadataService: MetadataService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async create(userId: string, input: CreateLinkDto) {
@@ -56,6 +68,12 @@ export class LinksService {
       url: link.url,
     });
 
+    await Promise.all([
+      this.deleteKeysByPrefix(userId),
+
+      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+    ]);
+
     // The metadata row was just created as pending in the same
     // transaction — no need to read it back.
     return this.toLinkResponse(
@@ -71,6 +89,20 @@ export class LinksService {
     sortingInput: Sorting[] | null,
     queryInput: LinkQueryDto,
   ): Promise<PaginationResponse<LinkResponse>> {
+    const cacheKey = LINK_LIST_CACHE_KEY(
+      userId,
+      { page, limit, offset },
+      sortingInput ?? null,
+      queryInput,
+    );
+
+    const cachedData =
+      await this.cacheManager.get<PaginationResponse<LinkResponse>>(cacheKey);
+
+    if (cachedData) {
+      return cachedData;
+    }
+
     const conditions = [eq(Link.user_id, userId)];
 
     if (queryInput.collectionId) {
@@ -134,7 +166,7 @@ export class LinksService {
       this.dbProvider.db.select({ total: count() }).from(Link).where(where),
     ]);
 
-    return {
+    const data = {
       data: links,
       meta: {
         total,
@@ -144,12 +176,21 @@ export class LinksService {
         hasPreviousPage: offset > 0,
       },
     };
+
+    await this.cacheManager.set(cacheKey, data, LINK_LIST_CACHE_TTL);
+
+    return data;
   }
 
-  async findById(
-    userId: string,
-    id: string,
-  ): Promise<LinkResponse | undefined> {
+  async findById(userId: string, id: string): Promise<LinkResponse> {
+    const cacheKey = INDIVIDUAL_LINK_CACHE_KEY(userId, id);
+
+    const cachedData = await this.cacheManager.get<LinkResponse>(cacheKey);
+
+    if (cachedData) {
+      return cachedData;
+    }
+
     const [link] = await this.dbProvider.db
       .select({
         id: Link.id,
@@ -176,10 +217,20 @@ export class LinksService {
       .innerJoin(LinkMetadata, eq(LinkMetadata.link_id, Link.id))
       .limit(1);
 
+    if (!link) {
+      throw new NotFoundException(`Link not found`);
+    }
+
+    await this.cacheManager.set<LinkResponse>(cacheKey, link, LINK_CACHE_TTL);
+
     return link;
   }
 
-  async update(userId: string, id: string, input: UpdateLinkDto) {
+  async update(
+    userId: string,
+    id: string,
+    input: UpdateLinkDto,
+  ): Promise<LinkResponse> {
     const values: Record<string, unknown> = {};
     if (input.title !== undefined) values.title = input.title;
     if (input.url !== undefined) values.url = input.url;
@@ -221,6 +272,15 @@ export class LinksService {
       metadata = await this.getMetadata(link.id);
     }
 
+    const cacheKey = INDIVIDUAL_LINK_CACHE_KEY(userId, id);
+    await Promise.all([
+      this.cacheManager.del(cacheKey),
+
+      this.deleteKeysByPrefix(userId),
+
+      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+    ]);
+
     return this.toLinkResponse(
       link,
       await this.getCollection(userId, link),
@@ -238,6 +298,15 @@ export class LinksService {
       this.logger.warn(`Link ${id} not found for user ${userId}`);
       throw new NotFoundException(`Link ${id} not found`);
     }
+
+    const cacheKey = INDIVIDUAL_LINK_CACHE_KEY(userId, id);
+    await Promise.all([
+      this.cacheManager.del(cacheKey),
+
+      this.deleteKeysByPrefix(userId),
+
+      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+    ]);
 
     this.logger.log(`Deleted link ${id} for user ${userId}`);
   }
@@ -264,6 +333,15 @@ export class LinksService {
     const [collection, metadata] = await Promise.all([
       this.getCollection(userId, link),
       this.getMetadata(link.id),
+    ]);
+
+    const cacheKey = INDIVIDUAL_LINK_CACHE_KEY(userId, id);
+    await Promise.all([
+      this.cacheManager.del(cacheKey),
+
+      this.deleteKeysByPrefix(userId),
+
+      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
     ]);
 
     return this.toLinkResponse(link, collection, metadata);
@@ -329,5 +407,39 @@ export class LinksService {
       createdAt: link.created_at,
       updatedAt: link.updated_at,
     };
+  }
+
+  private async deleteKeysByPrefix(userId: string) {
+    const prefix = `${LINK_LIST_CACHE_KEY_PREFIX}:${userId}`;
+
+    const keyv = this.cacheManager.stores[0];
+
+    if (!keyv.iterator) {
+      this.logger.warn(`No iterator available for cache store`);
+      return;
+    }
+
+    const iterator = keyv.iterator(undefined) as AsyncGenerator<
+      [string | undefined, unknown],
+      void
+    >;
+
+    const keysToDelete: string[] = [];
+
+    for await (const entry of iterator) {
+      const key = entry[0];
+
+      this.logger.debug(`Iterator key: ${String(key)}`);
+
+      if (typeof key === 'string' && key.startsWith(prefix)) {
+        keysToDelete.push(key);
+      }
+    }
+
+    if (keysToDelete.length > 0) {
+      await keyv.delete(keysToDelete);
+    }
+
+    this.logger.debug(`Deleted ${keysToDelete.length} keys by prefix`);
   }
 }
