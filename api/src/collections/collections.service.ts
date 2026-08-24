@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { and, desc, eq } from 'drizzle-orm';
 import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
@@ -11,12 +11,23 @@ import { Sorting } from 'src/common/sorting/sorting.interface';
 import { sortingFields } from './constants';
 import { asc } from 'drizzle-orm';
 import { CollectionResponse } from './interface/collection.interface';
+import { CollectionQueryDto } from './dto/collection-query.dto';
+import { ilike } from 'drizzle-orm';
+import {
+  COLLECTION_CACHE_TTL,
+  COLLECTION_LIST_CACHE_KEY,
+} from './collection.cache';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { type Cache } from 'cache-manager';
 
 @Injectable()
 export class CollectionsService {
   private readonly logger = new Logger(CollectionsService.name);
 
-  constructor(private readonly dbProvider: DbProvider) {}
+  constructor(
+    private readonly dbProvider: DbProvider,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {}
 
   async create(userId: string, input: CreateCollectionDto) {
     const [collection] = await this.dbProvider.db
@@ -56,8 +67,31 @@ export class CollectionsService {
     userId: string,
     { page, limit, offset }: Pagination,
     sortingInput?: Sorting[] | null,
+    queryInput?: CollectionQueryDto,
   ): Promise<PaginationResponse<CollectionResponse>> {
-    const where = eq(Collection.user_id, userId);
+    const cacheKey = COLLECTION_LIST_CACHE_KEY(
+      userId,
+      { page, limit, offset },
+      sortingInput ?? null,
+      queryInput ?? {},
+    );
+
+    const cachedData =
+      await this.cacheManager.get<PaginationResponse<CollectionResponse>>(
+        cacheKey,
+      );
+
+    if (cachedData) {
+      return cachedData;
+    }
+
+    const conditions = [eq(Collection.user_id, userId)];
+
+    if (queryInput?.search) {
+      conditions.push(ilike(Collection.name, `%${queryInput.search}%`));
+    }
+
+    const where = and(...conditions);
 
     const sortOrders = sortingInput?.map((sort) => {
       const sortField = sortingFields[sort.field as keyof typeof sortingFields];
@@ -81,7 +115,7 @@ export class CollectionsService {
         .where(where),
     ]);
 
-    return {
+    const data = {
       data: collections.map((collection) =>
         this.toCollectionResponse(collection),
       ),
@@ -93,6 +127,14 @@ export class CollectionsService {
         hasPreviousPage: page > 1,
       },
     };
+
+    await this.cacheManager.set<PaginationResponse<CollectionResponse>>(
+      cacheKey,
+      data,
+      COLLECTION_CACHE_TTL,
+    );
+
+    return data;
   }
 
   async update(userId: string, id: string, input: UpdateCollectionDto) {
