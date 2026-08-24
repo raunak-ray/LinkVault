@@ -15,13 +15,20 @@ import { CollectionQueryDto } from './dto/collection-query.dto';
 import { ilike } from 'drizzle-orm';
 import {
   COLLECTION_CACHE_TTL,
-  COLLECTION_LIST_CACHE_KEY,
+  COLLECTION_LIST_CACHE_TTL,
   COLLECTION_LIST_PREFIX,
   INDIVIDUAL_COLLECTION_CACHE_KEY,
+  COLLECTION_LIST_CACHE_KEY,
 } from './collection.cache';
+import { DASHBOARD_CACHE_KEY } from 'src/dashboard/dashboard.cache';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { type Cache } from 'cache-manager';
-import { DASHBOARD_CACHE_KEY } from 'src/dashboard/dashboard.cache';
+import {
+  safeCacheGet,
+  safeCacheSet,
+  safeCacheDel,
+  deleteCacheByPrefix,
+} from 'src/common/utils/cache.utils';
 
 @Injectable()
 export class CollectionsService {
@@ -43,10 +50,15 @@ export class CollectionsService {
 
     this.logger.log(`Collection created (id: ${collection.id})`);
 
+    // Invalidate user's collection list and dashboard caches
     await Promise.all([
-      this.deleteKeysByPrefix(userId),
-
-      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+      this.deleteUserListCache(userId),
+      safeCacheDel(
+        this.cacheManager,
+        DASHBOARD_CACHE_KEY(userId),
+        this.logger,
+        'dashboard',
+      ),
     ]);
 
     return this.toCollectionResponse(collection);
@@ -71,8 +83,12 @@ export class CollectionsService {
   async findById(userId: string, id: string): Promise<CollectionResponse> {
     const cacheKey = INDIVIDUAL_COLLECTION_CACHE_KEY(userId, id);
 
-    const cachedData =
-      await this.cacheManager.get<CollectionResponse>(cacheKey);
+    const cachedData = await safeCacheGet<CollectionResponse>(
+      this.cacheManager,
+      cacheKey,
+      this.logger,
+      'collections:single',
+    );
 
     if (cachedData) {
       return cachedData;
@@ -88,10 +104,13 @@ export class CollectionsService {
     }
 
     const data = this.toCollectionResponse(collection);
-    await this.cacheManager.set<CollectionResponse>(
+    await safeCacheSet(
+      this.cacheManager,
       cacheKey,
       data,
       COLLECTION_CACHE_TTL,
+      this.logger,
+      'collections:single',
     );
 
     return data;
@@ -110,10 +129,9 @@ export class CollectionsService {
       queryInput ?? {},
     );
 
-    const cachedData =
-      await this.cacheManager.get<PaginationResponse<CollectionResponse>>(
-        cacheKey,
-      );
+    const cachedData = await safeCacheGet<
+      PaginationResponse<CollectionResponse>
+    >(this.cacheManager, cacheKey, this.logger, 'collections:list');
 
     if (cachedData) {
       return cachedData;
@@ -162,10 +180,13 @@ export class CollectionsService {
       },
     };
 
-    await this.cacheManager.set<PaginationResponse<CollectionResponse>>(
+    await safeCacheSet(
+      this.cacheManager,
       cacheKey,
       data,
-      COLLECTION_CACHE_TTL,
+      COLLECTION_LIST_CACHE_TTL,
+      this.logger,
+      'collections:list',
     );
 
     return data;
@@ -193,11 +214,19 @@ export class CollectionsService {
     const cacheKey = INDIVIDUAL_COLLECTION_CACHE_KEY(userId, id);
 
     await Promise.all([
-      this.cacheManager.del(cacheKey),
-
-      this.deleteKeysByPrefix(userId),
-
-      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+      safeCacheDel(
+        this.cacheManager,
+        cacheKey,
+        this.logger,
+        'collections:single',
+      ),
+      this.deleteUserListCache(userId),
+      safeCacheDel(
+        this.cacheManager,
+        DASHBOARD_CACHE_KEY(userId),
+        this.logger,
+        'dashboard',
+      ),
     ]);
 
     return this.toCollectionResponse(updatedCollection);
@@ -219,11 +248,19 @@ export class CollectionsService {
     const cacheKey = INDIVIDUAL_COLLECTION_CACHE_KEY(userId, id);
 
     await Promise.all([
-      this.cacheManager.del(cacheKey),
-
-      this.deleteKeysByPrefix(userId),
-
-      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+      safeCacheDel(
+        this.cacheManager,
+        cacheKey,
+        this.logger,
+        'collections:single',
+      ),
+      this.deleteUserListCache(userId),
+      safeCacheDel(
+        this.cacheManager,
+        DASHBOARD_CACHE_KEY(userId),
+        this.logger,
+        'dashboard',
+      ),
     ]);
 
     this.logger.log(`Collection deleted (id: ${id})`);
@@ -242,39 +279,17 @@ export class CollectionsService {
     };
   }
 
-  private async deleteKeysByPrefix(userId: string) {
-    const prefix = `${COLLECTION_LIST_PREFIX}:${userId}:`;
-
-    const keyv = this.cacheManager.stores[0];
-
-    if (!keyv.iterator) {
-      this.logger.warn('Keyv store does not support iterator');
-      return;
-    }
-
-    const keysToDelete: string[] = [];
-
-    const iterator = keyv.iterator(undefined) as AsyncGenerator<
-      [string | undefined, unknown],
-      void
-    >;
-
-    for await (const entry of iterator) {
-      const key = entry[0];
-
-      this.logger.debug(`Iterator key: ${String(key)}`);
-
-      if (typeof key === 'string' && key.startsWith(prefix)) {
-        keysToDelete.push(key);
-      }
-    }
-
-    if (keysToDelete.length > 0) {
-      await keyv.delete(keysToDelete);
-    }
-
-    this.logger.debug(
-      `Deleted ${keysToDelete.length} collection list cache keys`,
+  private async deleteUserListCache(userId: string): Promise<void> {
+    const deleted = await deleteCacheByPrefix(
+      this.cacheManager,
+      `${COLLECTION_LIST_PREFIX}:${userId}:`,
+      this.logger,
+      'collections:list:invalidate',
     );
+    if (deleted > 0) {
+      this.logger.debug(
+        `Invalidated ${deleted} collection list cache entries for user ${userId}`,
+      );
+    }
   }
 }

@@ -25,10 +25,16 @@ import {
   INDIVIDUAL_LINK_CACHE_KEY,
   LINK_CACHE_TTL,
   LINK_LIST_CACHE_KEY,
-  LINK_LIST_CACHE_KEY_PREFIX,
   LINK_LIST_CACHE_TTL,
+  LINK_LIST_CACHE_KEY_PREFIX,
 } from './links.cache';
 import { DASHBOARD_CACHE_KEY } from 'src/dashboard/dashboard.cache';
+import {
+  safeCacheGet,
+  safeCacheSet,
+  safeCacheDel,
+  deleteCacheByPrefix,
+} from 'src/common/utils/cache.utils';
 
 @Injectable()
 export class LinksService {
@@ -68,14 +74,17 @@ export class LinksService {
       url: link.url,
     });
 
+    // Invalidate user's link list and dashboard caches in parallel
     await Promise.all([
-      this.deleteKeysByPrefix(userId),
-
-      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+      this.deleteUserListCache(userId),
+      safeCacheDel(
+        this.cacheManager,
+        DASHBOARD_CACHE_KEY(userId),
+        this.logger,
+        'dashboard',
+      ),
     ]);
 
-    // The metadata row was just created as pending in the same
-    // transaction — no need to read it back.
     return this.toLinkResponse(
       link,
       await this.getCollection(userId, link),
@@ -96,8 +105,13 @@ export class LinksService {
       queryInput,
     );
 
-    const cachedData =
-      await this.cacheManager.get<PaginationResponse<LinkResponse>>(cacheKey);
+    // Try cache first
+    const cachedData = await safeCacheGet<PaginationResponse<LinkResponse>>(
+      this.cacheManager,
+      cacheKey,
+      this.logger,
+      'links:list',
+    );
 
     if (cachedData) {
       return cachedData;
@@ -156,8 +170,6 @@ export class LinksService {
             eq(Collection.user_id, userId),
           ),
         )
-        // Every link is created with a metadata row in the same
-        // transaction, so the inner join always matches
         .innerJoin(LinkMetadata, eq(LinkMetadata.link_id, Link.id))
         .orderBy(...(sortOrders ?? [desc(Link.created_at)]))
         .limit(limit)
@@ -177,7 +189,14 @@ export class LinksService {
       },
     };
 
-    await this.cacheManager.set(cacheKey, data, LINK_LIST_CACHE_TTL);
+    await safeCacheSet(
+      this.cacheManager,
+      cacheKey,
+      data,
+      LINK_LIST_CACHE_TTL,
+      this.logger,
+      'links:list',
+    );
 
     return data;
   }
@@ -185,7 +204,12 @@ export class LinksService {
   async findById(userId: string, id: string): Promise<LinkResponse> {
     const cacheKey = INDIVIDUAL_LINK_CACHE_KEY(userId, id);
 
-    const cachedData = await this.cacheManager.get<LinkResponse>(cacheKey);
+    const cachedData = await safeCacheGet<LinkResponse>(
+      this.cacheManager,
+      cacheKey,
+      this.logger,
+      'links:single',
+    );
 
     if (cachedData) {
       return cachedData;
@@ -221,7 +245,14 @@ export class LinksService {
       throw new NotFoundException(`Link not found`);
     }
 
-    await this.cacheManager.set<LinkResponse>(cacheKey, link, LINK_CACHE_TTL);
+    await safeCacheSet(
+      this.cacheManager,
+      cacheKey,
+      link,
+      LINK_CACHE_TTL,
+      this.logger,
+      'links:single',
+    );
 
     return link;
   }
@@ -261,8 +292,6 @@ export class LinksService {
     let metadata: LinkMetadataResponse = this.pendingMetadata;
 
     if (values.url !== undefined) {
-      // Reset before enqueueing so a fast worker can never overwrite
-      // a stale reset with its completed result — or vice versa.
       await this.metadataService.resetToPending(link.id);
       await this.metadataProducer.enqueueExtraction({
         linkId: link.id,
@@ -273,12 +302,17 @@ export class LinksService {
     }
 
     const cacheKey = INDIVIDUAL_LINK_CACHE_KEY(userId, id);
+
+    // Invalidate all related caches in parallel
     await Promise.all([
-      this.cacheManager.del(cacheKey),
-
-      this.deleteKeysByPrefix(userId),
-
-      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+      safeCacheDel(this.cacheManager, cacheKey, this.logger, 'links:single'),
+      this.deleteUserListCache(userId),
+      safeCacheDel(
+        this.cacheManager,
+        DASHBOARD_CACHE_KEY(userId),
+        this.logger,
+        'dashboard',
+      ),
     ]);
 
     return this.toLinkResponse(
@@ -300,12 +334,16 @@ export class LinksService {
     }
 
     const cacheKey = INDIVIDUAL_LINK_CACHE_KEY(userId, id);
+
     await Promise.all([
-      this.cacheManager.del(cacheKey),
-
-      this.deleteKeysByPrefix(userId),
-
-      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+      safeCacheDel(this.cacheManager, cacheKey, this.logger, 'links:single'),
+      this.deleteUserListCache(userId),
+      safeCacheDel(
+        this.cacheManager,
+        DASHBOARD_CACHE_KEY(userId),
+        this.logger,
+        'dashboard',
+      ),
     ]);
 
     this.logger.log(`Deleted link ${id} for user ${userId}`);
@@ -336,12 +374,16 @@ export class LinksService {
     ]);
 
     const cacheKey = INDIVIDUAL_LINK_CACHE_KEY(userId, id);
+
     await Promise.all([
-      this.cacheManager.del(cacheKey),
-
-      this.deleteKeysByPrefix(userId),
-
-      this.cacheManager.del(DASHBOARD_CACHE_KEY(userId)),
+      safeCacheDel(this.cacheManager, cacheKey, this.logger, 'links:single'),
+      this.deleteUserListCache(userId),
+      safeCacheDel(
+        this.cacheManager,
+        DASHBOARD_CACHE_KEY(userId),
+        this.logger,
+        'dashboard',
+      ),
     ]);
 
     return this.toLinkResponse(link, collection, metadata);
@@ -378,8 +420,6 @@ export class LinksService {
     return collection;
   }
 
-  // Every link has exactly one metadata row (created with the link),
-  // so this always resolves to a row.
   private async getMetadata(linkId: string): Promise<LinkMetadataResponse> {
     const [metadata] = await this.dbProvider.db
       .select(this.metadataColumns)
@@ -409,37 +449,17 @@ export class LinksService {
     };
   }
 
-  private async deleteKeysByPrefix(userId: string) {
-    const prefix = `${LINK_LIST_CACHE_KEY_PREFIX}:${userId}`;
-
-    const keyv = this.cacheManager.stores[0];
-
-    if (!keyv.iterator) {
-      this.logger.warn(`No iterator available for cache store`);
-      return;
+  private async deleteUserListCache(userId: string): Promise<void> {
+    const deleted = await deleteCacheByPrefix(
+      this.cacheManager,
+      `${LINK_LIST_CACHE_KEY_PREFIX}:${userId}:`,
+      this.logger,
+      'links:list:invalidate',
+    );
+    if (deleted > 0) {
+      this.logger.debug(
+        `Invalidated ${deleted} link list cache entries for user ${userId}`,
+      );
     }
-
-    const iterator = keyv.iterator(undefined) as AsyncGenerator<
-      [string | undefined, unknown],
-      void
-    >;
-
-    const keysToDelete: string[] = [];
-
-    for await (const entry of iterator) {
-      const key = entry[0];
-
-      this.logger.debug(`Iterator key: ${String(key)}`);
-
-      if (typeof key === 'string' && key.startsWith(prefix)) {
-        keysToDelete.push(key);
-      }
-    }
-
-    if (keysToDelete.length > 0) {
-      await keyv.delete(keysToDelete);
-    }
-
-    this.logger.debug(`Deleted ${keysToDelete.length} keys by prefix`);
   }
 }
