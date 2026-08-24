@@ -15,6 +15,9 @@ import { LinksModule } from './links/links.module';
 import { BullModule } from '@nestjs/bullmq';
 import { MetadataModule } from './metadata/metadata.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import Keyv from 'keyv';
+import KeyvRedis from '@keyv/redis';
 
 @Module({
   imports: [
@@ -31,10 +34,22 @@ import { DashboardModule } from './dashboard/dashboard.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         connection: {
-          host: config.get<string>('REDIS_HOST', 'localhost'),
-          port: config.get<number>('REDIS_PORT', 6379),
+          url: config.getOrThrow<string>('REDIS_URL'),
         },
       }),
+    }),
+    CacheModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        stores: [
+          new Keyv({
+            store: new KeyvRedis({
+              url: config.getOrThrow<string>('REDIS_URL'),
+            }),
+          }),
+        ],
+      }),
+      isGlobal: true,
     }),
     DbModule,
     AuthModule,
