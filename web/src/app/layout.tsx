@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
 import LandingNavbar from "@/components/common/landing/Navbar";
+import QueryProvider from "@/components/provider/QueryProvider";
 
 const manrope = Manrope({
   variable: "--font-manrope",
@@ -28,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col font-sans bg-[#333]">
         <LandingNavbar />
-        {children}
+        <QueryProvider> {children}</QueryProvider>
       </body>
     </html>
   );
