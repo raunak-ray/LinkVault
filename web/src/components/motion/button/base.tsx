@@ -22,10 +22,8 @@ import { cn } from "@/lib/utils";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "outline";
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
-export interface ButtonProps extends Omit<
-  HTMLMotionProps<"button">,
-  "children"
-> {
+export interface ButtonProps
+  extends Omit<HTMLMotionProps<"button">, "children"> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   pressScale?: number;
@@ -34,10 +32,8 @@ export interface ButtonProps extends Omit<
   children?: ReactNode;
 }
 
-export interface ButtonLinkProps extends Omit<
-  HTMLMotionProps<"a">,
-  "children"
-> {
+export interface ButtonLinkProps
+  extends Omit<HTMLMotionProps<"a">, "children"> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   pressScale?: number;

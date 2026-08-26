@@ -85,13 +85,7 @@ function IconSlot({ keyId, children }: { keyId: string; children: ReactNode }) {
   );
 }
 
-function TextSlot({
-  value,
-  children,
-}: {
-  value: string;
-  children: ReactNode;
-}) {
+function TextSlot({ value, children }: { value: string; children: ReactNode }) {
   const reduce = useReducedMotion();
   const measureRef = useRef<HTMLSpanElement>(null);
   const [width, setWidth] = useState<number>();
@@ -162,9 +156,19 @@ function TextSlot({
         <AnimatePresence initial={false}>
           <motion.span
             key={`text-${value}`}
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 14, filter: ROLL_BLUR }}
-            animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -14, filter: ROLL_BLUR }}
+            initial={
+              reduce ? { opacity: 0 } : { opacity: 0, y: 14, filter: ROLL_BLUR }
+            }
+            animate={
+              reduce
+                ? { opacity: 1 }
+                : { opacity: 1, y: 0, filter: "blur(0px)" }
+            }
+            exit={
+              reduce
+                ? { opacity: 0 }
+                : { opacity: 0, y: -14, filter: ROLL_BLUR }
+            }
             transition={reduce ? { duration: 0.15 } : SPRING_SWAP}
             className="absolute left-0 top-0 inline-block will-change-[opacity,filter,transform]"
           >
@@ -176,7 +180,10 @@ function TextSlot({
   );
 }
 
-export const StatefulButton = forwardRef<HTMLButtonElement, StatefulButtonProps>(function StatefulButton(
+export const StatefulButton = forwardRef<
+  HTMLButtonElement,
+  StatefulButtonProps
+>(function StatefulButton(
   {
     state = "idle",
     children,
@@ -196,13 +203,19 @@ export const StatefulButton = forwardRef<HTMLButtonElement, StatefulButtonProps>
       : state === "success"
         ? successText
         : state === "error"
-        ? errorText
-        : children;
+          ? errorText
+          : children;
   const textKey =
     typeof stateText === "string" ? `${state}-${stateText}` : state;
 
   return (
-    <Button ref={ref} disabled={disabled || isBusy} aria-busy={isBusy} whileHover={undefined} {...rest}>
+    <Button
+      ref={ref}
+      disabled={disabled || isBusy}
+      aria-busy={isBusy}
+      whileHover={undefined}
+      {...rest}
+    >
       <span
         aria-live="polite"
         className="relative inline-flex items-center justify-center overflow-hidden"

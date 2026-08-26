@@ -30,7 +30,9 @@ export default function LandingNavbar() {
                 <Save className="h-5 w-5" />
               </div>
 
-              <h2 className="font-mono text-md md:text-lg font-bold">LinkVault</h2>
+              <h2 className="font-mono text-md md:text-lg font-bold">
+                LinkVault
+              </h2>
             </Link>
 
             {/* Desktop navigation */}
