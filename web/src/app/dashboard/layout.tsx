@@ -23,7 +23,7 @@ export default function DashboardLayout({
           <div className="flex min-h-svh w-full bg-[#070d15] text-white">
             <Sidebar />
             <main className="min-w-0 flex-1">
-              <header className="flex h-14 items-center px-4 border-b border-white/10">
+              <header className="flex h-15 items-center px-4 border-b border-white/10">
                 <AnimatedSidebarTrigger className="text-white hover:bg-white/10">
                   <PanelLeft className="size-5" />
                 </AnimatedSidebarTrigger>

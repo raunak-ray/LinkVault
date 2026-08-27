@@ -11,8 +11,8 @@ import {
   AnimatedSidebarMenuButton,
   AnimatedSidebarMenuItem,
 } from "@/components/motion/animated-sidebar";
-import { Blocks, LogOut, PanelLeft, Settings, Star } from "lucide-motion";
-import { Bookmark, Home } from "lucide-react";
+import { Blocks, House, LogOut, PanelLeft, Settings, Star } from "lucide-motion";
+import { Bookmark } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useLogout } from "@/lib/auth/use-logout";
@@ -21,7 +21,7 @@ const content = [
   {
     id: "dashboard",
     label: "Dashboard",
-    icon: Home,
+    icon: House,
     href: "/dashboard",
   },
   {
@@ -56,12 +56,12 @@ export default function Sidebar() {
       collapsible="icon"
       panelClassName="border-white/20 bg-[#13171d]"
     >
-      <AnimatedSidebarHeader className="px-4 pb-2">
+      <AnimatedSidebarHeader className="px-4 pb-2 border-b border-white/10 h-15">
         <div className="flex gap-2 items-center justify-start">
-          <div className="rounded-full bg-blue-400/20 p-2 border-white/10 border">
+          <div className="rounded-full bg-blue-400/20 text-white p-2 border-white/10 border">
             <Bookmark className="size-5 " />
           </div>
-          <h2 className="group-data-[state=collapsed]/sidebar:hidden font-bold">
+          <h2 className="group-data-[state=collapsed]/sidebar:hidden font-bold text-white">
             LinkVault
           </h2>
         </div>
@@ -119,12 +119,6 @@ export default function Sidebar() {
               {isLoggingOut ? "Logging out..." : "Logout"}
             </AnimatedSidebarMenuButton>
           </AnimatedSidebarMenuItem>
-          {user && (
-            <div className="px-2 py-3 group-data-[state=collapsed]/sidebar:hidden">
-              <p className="text-xs text-white/60 truncate">{user.name}</p>
-              <p className="text-[11px] text-white/40 truncate">{user.email}</p>
-            </div>
-          )}
         </AnimatedSidebarMenu>
       </AnimatedSidebarFooter>
     </AnimatedSidebar>
