@@ -4,7 +4,11 @@ import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-provider";
 
-export default function GuestGuard({ children }: { children: React.ReactNode }) {
+export default function GuestGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -13,7 +17,10 @@ export default function GuestGuard({ children }: { children: React.ReactNode }) 
     if (!isLoading && isAuthenticated) {
       const next = searchParams.get("next");
       // Prevent open redirect — only allow internal paths
-      const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+      const target =
+        next && next.startsWith("/") && !next.startsWith("//")
+          ? next
+          : "/dashboard";
       router.replace(target);
     }
   }, [isLoading, isAuthenticated, router, searchParams]);

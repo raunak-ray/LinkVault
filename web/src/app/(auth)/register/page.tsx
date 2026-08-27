@@ -11,7 +11,11 @@ export default function RegisterPage() {
         </div>
         <h2 className="text-xl md:text-2xl font-bold">LinkVault</h2>
       </div>
-      <Suspense fallback={<div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />}>
+      <Suspense
+        fallback={
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+        }
+      >
         <RegisterForm />
       </Suspense>
     </main>

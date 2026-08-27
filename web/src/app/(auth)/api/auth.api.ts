@@ -38,7 +38,9 @@ export const authApi = {
 
   logout: async (): Promise<ApiSuccessResponse<{ success: boolean }>> => {
     const response =
-      await rawApi.post<ApiSuccessResponse<{ success: boolean }>>("/auth/logout");
+      await rawApi.post<ApiSuccessResponse<{ success: boolean }>>(
+        "/auth/logout",
+      );
     return response.data;
   },
 

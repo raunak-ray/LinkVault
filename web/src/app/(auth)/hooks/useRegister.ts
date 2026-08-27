@@ -27,7 +27,9 @@ export default function useRegister() {
       queryClient.setQueryData(queryKey, user);
       const next = searchParams.get("next");
       const target =
-        next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+        next && next.startsWith("/") && !next.startsWith("//")
+          ? next
+          : "/dashboard";
       router.push(target);
       router.refresh();
     },

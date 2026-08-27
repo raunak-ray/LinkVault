@@ -551,7 +551,7 @@ export const AnimatedSidebar = forwardRef<HTMLElement, AnimatedSidebarProps>(
           transition={context.reduce ? REDUCED_TRANSITION : PANEL_TRANSITION}
           className={cn(
             "sticky top-0 flex h-svh w-full flex-col overflow-hidden bg-background",
-            collapsible === "offcanvas" && "w-[var(--sidebar-width)]",
+            collapsible === "offcanvas" && "w-(--sidebar-width)",
             variant === "sidebar" &&
               (side === "left"
                 ? "border-border border-r"

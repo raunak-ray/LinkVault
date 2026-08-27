@@ -73,7 +73,8 @@ export async function attemptSilentRefresh(): Promise<string | null> {
 
 api.interceptors.request.use((config) => {
   // allow bypassing auth header via custom flag
-  const skipAuth = (config.headers as Record<string, unknown>)?.["x-skip-auth"] === "true";
+  const skipAuth =
+    (config.headers as Record<string, unknown>)?.["x-skip-auth"] === "true";
   if (skipAuth) {
     delete (config.headers as Record<string, unknown>)["x-skip-auth"];
     delete (config.headers as Record<string, unknown>).Authorization;
@@ -156,7 +157,9 @@ api.interceptors.response.use(
         }
       }
 
-      return Promise.reject(refreshError instanceof Error ? refreshError : error);
+      return Promise.reject(
+        refreshError instanceof Error ? refreshError : error,
+      );
     }
   },
 );

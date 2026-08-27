@@ -4,7 +4,11 @@ import { useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-provider";
 
-export default function RequireAuth({ children }: { children: React.ReactNode }) {
+export default function RequireAuth({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -12,7 +16,9 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      const current = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : "");
+      const current =
+        pathname +
+        (searchParams.toString() ? `?${searchParams.toString()}` : "");
       const next = encodeURIComponent(current);
       router.replace(`/login?next=${next}`);
     }

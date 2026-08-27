@@ -6,9 +6,5 @@ import { Bookmark, Star, Blocks } from "lucide-react";
 export default function DashboardPage() {
   const { user } = useAuth();
 
-  return (
-    <div>
-      Dashboard
-    </div>
-  );
+  return <div>Dashboard</div>;
 }

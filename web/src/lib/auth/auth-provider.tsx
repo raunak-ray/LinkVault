@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useCallback, useRef, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+  useState,
+} from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "@/app/(auth)/api/auth.api";
 import {
@@ -180,7 +188,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       logout,
       refresh,
     }),
-    [user, isAuthenticated, isLoading, query.isFetching, query.error, logout, refresh],
+    [
+      user,
+      isAuthenticated,
+      isLoading,
+      query.isFetching,
+      query.error,
+      logout,
+      refresh,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -197,7 +213,9 @@ export function useRequireAuth() {
   const auth = useAuth();
   if (!auth.isLoading && !auth.isAuthenticated) {
     if (typeof window !== "undefined") {
-      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      const next = encodeURIComponent(
+        window.location.pathname + window.location.search,
+      );
       window.location.href = `/login?next=${next}`;
     }
   }
