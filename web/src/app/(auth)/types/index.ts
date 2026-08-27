@@ -1,0 +1,27 @@
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  avatar: string;
+  createdAt: Date;
+}
+
+export interface AuthUser extends User {
+  accessToken: string;
+}
+
+export interface RefreshResponse {
+  accessToken: string;
+  refreshExpiry: Date;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+}

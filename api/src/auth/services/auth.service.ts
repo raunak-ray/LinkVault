@@ -226,17 +226,20 @@ export class AuthService {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      path: '/auth',
+      path: '/',
       maxAge: expiresAt.getTime() - Date.now(),
     });
   }
 
   private clearRefreshToken(res: Response) {
-    res.clearCookie('refreshToken', {
+    // Clear both '/' and legacy '/auth' paths to purge stale cookies from previous builds
+    const opts = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/auth',
-    });
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+    res.clearCookie('refreshToken', opts);
+    res.clearCookie('refreshToken', { ...opts, path: '/auth' });
   }
 }
