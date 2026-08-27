@@ -460,7 +460,7 @@ function MobileSidebar({
           side === "left" ? "left-0 border-r" : "right-0 border-l",
           !context.openMobile && "pointer-events-none",
           className,
-          panelClassName
+          panelClassName,
         )}
       >
         <AnimatedSidebarPanelContext.Provider
@@ -510,7 +510,12 @@ export const AnimatedSidebar = forwardRef<HTMLElement, AnimatedSidebarProps>(
 
     if (context.isMobile) {
       return (
-        <MobileSidebar ariaLabel={ariaLabel} className={className} panelClassName={panelClassName} side={side}>
+        <MobileSidebar
+          ariaLabel={ariaLabel}
+          className={className}
+          panelClassName={panelClassName}
+          side={side}
+        >
           {children}
         </MobileSidebar>
       );

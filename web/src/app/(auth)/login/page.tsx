@@ -1,4 +1,5 @@
 import { Bookmark } from "lucide-motion";
+import { Suspense } from "react";
 import LoginForm from "../components/LoginForm";
 
 export default function LoginPage() {
@@ -10,7 +11,9 @@ export default function LoginPage() {
         </div>
         <h2 className="text-xl md:text-2xl font-bold">LinkVault</h2>
       </div>
-      <LoginForm />
+      <Suspense fallback={<div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />}>
+        <LoginForm />
+      </Suspense>
     </main>
   );
 }

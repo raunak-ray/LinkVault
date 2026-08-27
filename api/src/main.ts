@@ -9,6 +9,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const PORT = process.env.PORT ?? 5050;
 
+  app.use(cookieParser());
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -20,9 +22,9 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.CORS_ORIGIN?.split(',') ?? ['http://localhost:3000'],
     credentials: true,
+    allowedHeaders: 'Content-Type, Authorization',
+    methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
   });
-
-  app.use(cookieParser());
 
   app.enableShutdownHooks();
 

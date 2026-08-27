@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { setAccessToken } from "@/lib/api/client";
 import type { ApiErrorResponse, ApiSuccessResponse } from "@/types";
 import { authApi } from "../api/auth.api";
@@ -10,6 +10,7 @@ export function useLogin() {
   const queryClient = useQueryClient();
   const queryKey = ["auth", "me"];
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   return useMutation<
     ApiSuccessResponse<AuthUser>,
@@ -23,7 +24,11 @@ export function useLogin() {
       setAccessToken(accessToken);
 
       queryClient.setQueryData(queryKey, user);
-      router.push("/");
+      const next = searchParams.get("next");
+      const target =
+        next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
+      router.push(target);
+      router.refresh();
     },
   });
 }
