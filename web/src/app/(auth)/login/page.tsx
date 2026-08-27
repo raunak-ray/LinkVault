@@ -1,4 +1,4 @@
-import { Bookmark, Link, Save } from "lucide-motion";
+import { Bookmark } from "lucide-motion";
 import LoginForm from "../components/LoginForm";
 
 export default function LoginPage() {
