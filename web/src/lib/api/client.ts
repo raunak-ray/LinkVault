@@ -69,7 +69,7 @@ api.interceptors.response.use(
       const token = await refreshPromise;
       orignalRequest.headers.Authorization = `Bearer ${token}`;
       return api(orignalRequest);
-    } catch (err) {
+    } catch (_err) {
       clearAccessToken();
 
       if (typeof window !== "undefined") {

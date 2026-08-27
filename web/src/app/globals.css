@@ -121,19 +121,22 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+
   html {
     @apply font-sans;
   }
 }
 
-.grid {
+.bg-grid-pattern {
   background-size: 40px 30px;
   background-repeat: repeat;
-  background-image: 
-  linear-gradient(to right, #444 1px, transparent 1px),
-  linear-gradient(to bottom, #444 1px, transparent 1px);
-  opacity: 10;
+  background-image:
+    linear-gradient(to right, #444 1px, transparent 1px),
+    linear-gradient(to bottom, #444 1px, transparent 1px);
+  mask-image: radial-gradient(80% 60% at 50% 0, #000, transparent 75%);
+  -webkit-mask-image: radial-gradient(80% 60% at 50% 0, #000, transparent 75%);
 }

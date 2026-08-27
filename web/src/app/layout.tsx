@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Manrope } from "next/font/google";
 import "./globals.css";
-import LandingNavbar from "@/components/common/landing/Navbar";
 import QueryProvider from "@/components/provider/QueryProvider";
-import Link from "next/link";
 
 const manrope = Manrope({
   variable: "--font-manrope",

@@ -1,21 +1,21 @@
 import LandingNavbar from "@/components/common/landing/Navbar";
 
 export default function LandingLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-    return (
-        <main className="">
-            <div className="pointer-events-none absolute inset-0 z-0">
-                <div className="absolute inset-0 grid"/>
-                <div className="absolute left-1/2 top-[60%] h-[500px] w-full -translate-x-1/2 blur-5xl bg-white/10"/>
-            </div>
-            
-            <div className="z-10 text-white">
-                <LandingNavbar />
-                {children}
-            </div>
-        </main>
-    );
+  return (
+    <div className="relative min-h-screen">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 -z-10 bg-grid-pattern opacity-60"
+      />
+
+      <div className="relative z-10 text-white">
+        <LandingNavbar />
+        {children}
+      </div>
+    </div>
+  );
 }

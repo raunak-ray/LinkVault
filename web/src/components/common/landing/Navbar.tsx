@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Cross, Menu, Save, X } from "lucide-motion";
+import { Menu, Save, X } from "lucide-motion";
 import Link from "next/link";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { id: "home", label: "Home", href: "#" },

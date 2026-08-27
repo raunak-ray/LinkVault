@@ -1,23 +1,31 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { authApi } from "../api/auth.api";
-import { setAccessToken } from "@/lib/api/client";
+import type { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { setAccessToken } from "@/lib/api/client";
+import type { ApiErrorResponse, ApiSuccessResponse } from "@/types";
+import { authApi } from "../api/auth.api";
+import type { AuthUser, LoginPayload } from "../types";
 
-export default function useLogin() {
+export function useLogin() {
   const queryClient = useQueryClient();
-  const queryKey = ["auth", "login"];
+  const queryKey = ["auth", "me"];
   const router = useRouter();
 
-  return useMutation({
+  return useMutation<
+    ApiSuccessResponse<AuthUser>,
+    AxiosError<ApiErrorResponse>,
+    LoginPayload
+  >({
+    mutationKey: ["auth", "login"],
     mutationFn: authApi.login,
-    mutationKey: queryKey,
     onSuccess: (response) => {
       const { accessToken, ...user } = response.data;
       setAccessToken(accessToken);
 
       queryClient.setQueryData(queryKey, user);
-
       router.push("/");
     },
   });
 }
+
+export default useLogin;
