@@ -8,23 +8,23 @@ import { setAccessToken } from "@/lib/api/client";
 import { useRouter } from "next/navigation";
 
 export default function useRegister() {
-    const queryKey = ['auth', 'me'];
-    const queryClient = useQueryClient();
-    const router = useRouter();
+  const queryKey = ["auth", "me"];
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
-    return useMutation<
-        ApiSuccessResponse<AuthUser>,
-        AxiosError<ApiErrorResponse>,
-        RegisterPayload
-    >({
-        mutationFn: authApi.register,
-        mutationKey: queryKey,
-        onSuccess: (response) => {
-            const { accessToken, ...user } = response.data;
-            setAccessToken(accessToken);
+  return useMutation<
+    ApiSuccessResponse<AuthUser>,
+    AxiosError<ApiErrorResponse>,
+    RegisterPayload
+  >({
+    mutationFn: authApi.register,
+    mutationKey: queryKey,
+    onSuccess: (response) => {
+      const { accessToken, ...user } = response.data;
+      setAccessToken(accessToken);
 
-            queryClient.setQueryData(queryKey, user);
-            router.push("/")
-        }
-    })
+      queryClient.setQueryData(queryKey, user);
+      router.push("/");
+    },
+  });
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail } from "lucide-motion";
+import { Lock, Mail } from "lucide-motion";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -18,6 +18,7 @@ import { getErrorMessage } from "@/lib/api/get-error-message";
 import useLogin from "../hooks/useLogin";
 import { LoginSchema, type LoginSchemaType } from "../schemas/login.schema";
 import { StatefulButton } from "@/components/motion/button/stateful";
+import Link from "next/link";
 
 export default function LoginForm() {
   const { control, handleSubmit, watch } = useForm<LoginSchemaType>({
@@ -106,6 +107,7 @@ export default function LoginForm() {
                     "text-sm text-white placeholder:text-white/35 sm:text-[15px]",
                   errorMessage: "text-red-300 text-xs sm:text-sm",
                 }}
+                leftIcon={<Lock className="h-4 w-4" />}
                 rightIcon={
                   <Button
                     type="button"
@@ -128,7 +130,7 @@ export default function LoginForm() {
             )}
           />
           <StatefulButton
-            className="w-full bg-[#054a72] hover:bg-[#054a7278] text-md font-bold"
+            className="w-full bg-[#054a72] hover:bg-[#054a7282] cursor-pointer text-md font-bold"
             state={isPending ? "loading" : "idle"}
             type="submit"
             loadingText="Signing in..."
@@ -138,12 +140,12 @@ export default function LoginForm() {
 
           <p className="text-center text-sm text-white/50">
             Don&apos;t have an account?{" "}
-            <a
+            <Link
               href="/register"
               className="font-medium text-white hover:underline"
             >
               Create one
-            </a>
+            </Link>
           </p>
         </form>
       </CardContent>
