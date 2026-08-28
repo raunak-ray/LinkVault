@@ -1,5 +1,3 @@
 export default function LinkPage() {
-    return(
-        <h1>Link Page</h1>
-    )
+  return <h1>Link Page</h1>;
 }

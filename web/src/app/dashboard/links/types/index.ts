@@ -1,10 +1,10 @@
 export interface CreateLinkPayload {
-    title?: string;
-    url: string;
-    collectionId?: string;
+  title?: string;
+  url: string;
+  collectionId?: string;
 }
 
 export interface UpdateLinkPayload {
-    url?: string;
-    collectionId?: string;
+  url?: string;
+  collectionId?: string;
 }
