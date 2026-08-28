@@ -11,7 +11,14 @@ import {
   AnimatedSidebarMenuButton,
   AnimatedSidebarMenuItem,
 } from "@/components/motion/animated-sidebar";
-import { Blocks, House, LogOut, PanelLeft, Settings, Star } from "lucide-motion";
+import {
+  Blocks,
+  House,
+  LogOut,
+  PanelLeft,
+  Settings,
+  Star,
+} from "lucide-motion";
 import { Bookmark } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-provider";
