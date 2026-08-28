@@ -11,7 +11,7 @@ export default function RecentLinkCard({ link }: { link: LinkResponse }) {
   }).format(new Date(link.createdAt));
 
   return (
-    <Card className="border border-white/10 hover:border-white/40 transition-all duration-100 ease-in bg-[#131822]">
+    <Card className="border min-h-30 border-white/10 hover:border-white/40 transition-all duration-100 ease-in bg-[#131822] hover:shadow-[2px_2px_8px_0px_#000] cursor-default">
       <CardHeader>
         <CardTitle className="grid grid-cols-[40px_1fr] items-start gap-4">
           <div className="rounded-full border border-white/20 bg-[#131822] p-2">
