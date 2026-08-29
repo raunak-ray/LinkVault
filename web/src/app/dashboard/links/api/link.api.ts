@@ -28,9 +28,15 @@ export const linkApi = {
     return response.data;
   },
 
-  getAll: async (page?: number, limit?: number, isFavourite?: boolean) => {
+  getAll: async (
+    page?: number,
+    limit?: number,
+    isFavourite?: boolean,
+    search?: string,
+    sort?: string,
+  ) => {
     const response = await api.get<PaginationResponse<LinkResponse>>("/links", {
-      params: {page, limit, isFavourite}
+      params: { page, limit, isFavourite, search, sort },
     });
     return response.data;
   },
