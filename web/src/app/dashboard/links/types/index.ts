@@ -1,7 +1,7 @@
 export interface CreateLinkPayload {
   title?: string;
   url: string;
-  collectionId?: string;
+  collectionId: string;
 }
 
 export interface UpdateLinkPayload {

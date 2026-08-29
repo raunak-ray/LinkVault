@@ -18,16 +18,17 @@ export default function useMarkFavourite() {
       await queryClient.cancelQueries({ queryKey: ["dashboard"] });
       await queryClient.cancelQueries({ queryKey: ["link", id] });
 
-      const previousLinks = queryClient.getQueriesData<PaginationResponse<LinkResponse>>({
+      const previousLinks = queryClient.getQueriesData<
+        PaginationResponse<LinkResponse>
+      >({
         queryKey: ["links"],
       });
-      const previousDashboard = queryClient.getQueryData<ApiSuccessResponse<DashboardResponse>>([
-        "dashboard",
-      ]);
-      const previousLink = queryClient.getQueryData<ApiSuccessResponse<LinkResponse>>([
-        "link",
-        id,
-      ]);
+      const previousDashboard = queryClient.getQueryData<
+        ApiSuccessResponse<DashboardResponse>
+      >(["dashboard"]);
+      const previousLink = queryClient.getQueryData<
+        ApiSuccessResponse<LinkResponse>
+      >(["link", id]);
 
       // Update all ["links"] caches (any pagination variant)
       queryClient.setQueriesData<PaginationResponse<LinkResponse>>(

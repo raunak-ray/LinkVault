@@ -23,14 +23,13 @@ export const linkApi = {
   markFavourite: async (id: string, isFavourite: boolean) => {
     const response = await api.patch<ApiSuccessResponse<LinkResponse>>(
       `/links/${id}/favourite`,
-      {isFavourite}
+      { isFavourite },
     );
     return response.data;
   },
 
   getAll: async () => {
-    const response =
-      await api.get<PaginationResponse<LinkResponse>>("/links");
+    const response = await api.get<PaginationResponse<LinkResponse>>("/links");
     return response.data;
   },
 

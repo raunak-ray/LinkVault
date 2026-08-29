@@ -39,13 +39,17 @@ export default function RecentLinkCard({ link }: { link: LinkResponse }) {
             type="button"
             variant="ghost"
             disabled={isPending}
-            aria-label={isFavourite ? "Remove from favourites" : "Add to favourites"}
+            aria-label={
+              isFavourite ? "Remove from favourites" : "Add to favourites"
+            }
             onClick={() => {
               const newValue = !isFavourite;
               markFavourite({ id: link.id, isFavourite: newValue });
             }}
           >
-            <Star className={`size-5 ${isFavourite ? "fill-yellow-400 text-yellow-400" : "text-white"}`} />
+            <Star
+              className={`size-5 ${isFavourite ? "fill-yellow-400 text-yellow-400" : "text-white"}`}
+            />
           </Button>
         </CardTitle>
       </CardHeader>
