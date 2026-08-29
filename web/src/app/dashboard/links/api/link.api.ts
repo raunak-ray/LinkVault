@@ -28,8 +28,10 @@ export const linkApi = {
     return response.data;
   },
 
-  getAll: async () => {
-    const response = await api.get<PaginationResponse<LinkResponse>>("/links");
+  getAll: async (page?: number, limit?: number, isFavourite?: boolean) => {
+    const response = await api.get<PaginationResponse<LinkResponse>>("/links", {
+      params: {page, limit, isFavourite}
+    });
     return response.data;
   },
 
