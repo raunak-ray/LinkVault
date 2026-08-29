@@ -1,3 +1,13 @@
+import LinksView from "./components/LinksView";
+import useGetAllLinks from "./hooks/useGetAllLinks";
+
 export default function LinkPage() {
-  return <h1>Link Page</h1>;
+  // const {data} = useGetAllLinks();
+  return (
+    <main>
+      <section>
+        <LinksView />
+      </section>
+    </main>
+  );
 }

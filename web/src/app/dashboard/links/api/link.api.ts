@@ -1,6 +1,6 @@
 import api from "@/lib/api/client";
 import { CreateLinkPayload, UpdateLinkPayload } from "../types";
-import { ApiSuccessResponse } from "@/types";
+import { ApiSuccessResponse, PaginationResponse } from "@/types";
 import { LinkResponse } from "../../(dashboard)/types";
 
 export const linkApi = {
@@ -20,16 +20,17 @@ export const linkApi = {
     return response.data;
   },
 
-  markFavourite: async (id: string) => {
+  markFavourite: async (id: string, isFavourite: boolean) => {
     const response = await api.patch<ApiSuccessResponse<LinkResponse>>(
       `/links/${id}/favourite`,
+      {isFavourite}
     );
     return response.data;
   },
 
   getAll: async () => {
     const response =
-      await api.get<ApiSuccessResponse<LinkResponse[]>>("/links");
+      await api.get<PaginationResponse<LinkResponse>>("/links");
     return response.data;
   },
 

@@ -1,7 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LinkResponse } from "../types";
 import Link from "next/link";
-import { ExternalLink } from "lucide-motion";
+import { ExternalLink, Star } from "lucide-motion";
+import { Button } from "@/components/motion/button/base";
+import useMarkFavourite from "../../links/hooks/useMarkFavourite";
 
 export default function RecentLinkCard({ link }: { link: LinkResponse }) {
   const date = new Intl.DateTimeFormat("en-GB", {
@@ -10,10 +12,16 @@ export default function RecentLinkCard({ link }: { link: LinkResponse }) {
     year: "numeric",
   }).format(new Date(link.createdAt));
 
+  const { mutate: markFavourite, isPending } = useMarkFavourite();
+  // Use prop directly; optimistic update in the hook keeps UI snappy.
+  // No local useState — it went stale after refetch and caused the
+  // `markFavourite({ isFavourite })` bug (sending old value).
+  const isFavourite = link.isFavourite;
+
   return (
     <Card className="border min-h-30 border-white/10 hover:border-white/40 transition-all duration-100 ease-in bg-[#131822] hover:shadow-[2px_2px_8px_0px_#000] cursor-default">
       <CardHeader>
-        <CardTitle className="grid grid-cols-[40px_1fr] items-start gap-4">
+        <CardTitle className="grid grid-cols-[40px_1fr_auto] items-start gap-4">
           <div className="rounded-full border border-white/20 bg-[#131822] p-2">
             <img
               src={link.metadata.favicon as string}
@@ -26,6 +34,19 @@ export default function RecentLinkCard({ link }: { link: LinkResponse }) {
           <h1 className="text-md font-bold text-white md:text-lg lg:text-xl">
             {link.title}
           </h1>
+
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={isPending}
+            aria-label={isFavourite ? "Remove from favourites" : "Add to favourites"}
+            onClick={() => {
+              const newValue = !isFavourite;
+              markFavourite({ id: link.id, isFavourite: newValue });
+            }}
+          >
+            <Star className={`size-5 ${isFavourite ? "fill-yellow-400 text-yellow-400" : "text-white"}`} />
+          </Button>
         </CardTitle>
       </CardHeader>
 
