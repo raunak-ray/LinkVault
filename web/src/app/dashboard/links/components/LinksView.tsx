@@ -17,7 +17,10 @@ import {
   SelectValue,
 } from "@/components/motion/select";
 
-export default function LinksView() {
+export default function LinksView({
+  showSort = true,
+  showOnlyFavourite = false,
+}: { showSort?: boolean, showOnlyFavourite?: boolean }) {
   const [open, setIsOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
   const [sort, setSort] = useState<SortOptions>("newest");
@@ -29,7 +32,7 @@ export default function LinksView() {
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useGetAllLinks({
-      isFavourite,
+      isFavourite: showOnlyFavourite ? true : isFavourite,
       search:
         debouncedSearch.trim().length > 0 ? debouncedSearch.trim() : undefined,
       sort: SORT_OPTIONS[sort].value,
@@ -45,7 +48,7 @@ export default function LinksView() {
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="text-md md:text-xl lg:text-2xl font-bold text-white">
-          All Links
+          {showOnlyFavourite ?  "Favourite Links" : "All Links"}
         </h1>
 
         <div className="flex items-center justify-between">
@@ -89,13 +92,14 @@ export default function LinksView() {
         </div>
 
         {/* Sort */}
-        <Select
-          value={sort}
-          onValueChange={(val) => setSort(val as SortOptions)}
-          className="w-35 shrink-0"
-        >
-          <SelectTrigger
-            className="
+        {showSort && (
+          <Select
+            value={sort}
+            onValueChange={(val) => setSort(val as SortOptions)}
+            className="w-35 shrink-0"
+          >
+            <SelectTrigger
+              className="
               h-10
               bg-transparent
               text-white
@@ -109,24 +113,24 @@ export default function LinksView() {
               focus-visible:ring-2
               focus-visible:ring-blue-400/15
             "
-          >
-            <SelectValue placeholder="Sort" />
-          </SelectTrigger>
+            >
+              <SelectValue placeholder="Sort" />
+            </SelectTrigger>
 
-          <SelectContent
-            className="
+            <SelectContent
+              className="
             bg-[#252e37]
             text-white
             border-white/10
             rounded-md
             shadow-xl
           "
-          >
-            {Object.entries(SORT_OPTIONS).map(([value, option]) => (
-              <SelectItem
-                key={value}
-                value={value}
-                className="
+            >
+              {Object.entries(SORT_OPTIONS).map(([value, option]) => (
+                <SelectItem
+                  key={value}
+                  value={value}
+                  className="
                   cursor-pointer
                   rounded-md
                   text-white/70
@@ -135,19 +139,21 @@ export default function LinksView() {
                   focus:bg-blue-400/10
                   focus:text-blue-300
                 "
-              >
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         {/* Favourite */}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleFavouriteClick}
-          className={`
+        {!showOnlyFavourite && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleFavouriteClick}
+            className={`
             h-10
             shrink-0
             px-3.5
@@ -158,16 +164,16 @@ export default function LinksView() {
             transition-colors
             hover:bg-blue-400/10
             hover:border-blue-400/60
-            ${
-              isFavourite
+            ${isFavourite
                 ? "bg-blue-400/15 border-blue-400/60 text-blue-300"
                 : "bg-transparent text-white"
-            }
+              }
           `}
-        >
-          <Star className="size-4" />
-          Favourite
-        </Button>
+          >
+            <Star className="size-4" />
+            Favourite
+          </Button>
+        )}
       </div>
 
       {links.map((link) => (
