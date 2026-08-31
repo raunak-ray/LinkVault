@@ -103,12 +103,18 @@ export class DashboardService {
       },
     }));
 
+    const recentCollections = recentCollectionsRaw.map((c) => ({
+      ...c,
+      linkCount: 0,
+      previewLinks: [] as never[],
+    }));
+
     const data = {
       totalLinks,
       totalCollections,
       totalFavouriteLinks,
       recentLinks,
-      recentCollections: recentCollectionsRaw,
+      recentCollections,
     };
 
     await safeCacheSet(

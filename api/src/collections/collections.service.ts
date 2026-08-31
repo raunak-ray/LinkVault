@@ -1,18 +1,18 @@
 import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq, ilike, inArray } from 'drizzle-orm';
 import { DbProvider } from 'src/db/db.provider';
 import { CreateCollectionDto } from './dto/create-collection.dto';
-import { Collection } from 'src/db/schema';
+import { Collection, Link, LinkMetadata } from 'src/db/schema';
 import { UpdateCollectionDto } from './dto/update-collection.dto';
-import { count } from 'drizzle-orm';
 import { Pagination } from 'src/common/pagination/pagination.interface';
 import { PaginationResponse } from 'src/common/pagination/pagination-response.interface';
 import { Sorting } from 'src/common/sorting/sorting.interface';
 import { sortingFields } from './constants';
-import { asc } from 'drizzle-orm';
-import { CollectionResponse } from './interface/collection.interface';
+import {
+  CollectionPreviewLink,
+  CollectionResponse,
+} from './interface/collection.interface';
 import { CollectionQueryDto } from './dto/collection-query.dto';
-import { ilike } from 'drizzle-orm';
 import {
   COLLECTION_CACHE_TTL,
   COLLECTION_LIST_CACHE_TTL,
@@ -61,7 +61,7 @@ export class CollectionsService {
       ),
     ]);
 
-    return this.toCollectionResponse(collection);
+    return this.toCollectionResponse(collection, 0, []);
   }
 
   async findByName(
@@ -77,7 +77,8 @@ export class CollectionsService {
       return null;
     }
 
-    return this.toCollectionResponse(collection);
+    const enriched = await this.enrichCollections(userId, [collection]);
+    return enriched[0];
   }
 
   async findById(userId: string, id: string): Promise<CollectionResponse> {
@@ -103,7 +104,7 @@ export class CollectionsService {
       throw new NotFoundException('Collection not found');
     }
 
-    const data = this.toCollectionResponse(collection);
+    const [data] = await this.enrichCollections(userId, [collection]);
     await safeCacheSet(
       this.cacheManager,
       cacheKey,
@@ -167,10 +168,13 @@ export class CollectionsService {
         .where(where),
     ]);
 
+    const enriched = await this.enrichCollections(
+      userId,
+      collections as (typeof Collection.$inferSelect)[],
+    );
+
     const data = {
-      data: collections.map((collection) =>
-        this.toCollectionResponse(collection),
-      ),
+      data: enriched,
       meta: {
         total,
         totalPages: Math.ceil(total / limit),
@@ -229,7 +233,10 @@ export class CollectionsService {
       ),
     ]);
 
-    return this.toCollectionResponse(updatedCollection);
+    const [enriched] = await this.enrichCollections(userId, [
+      updatedCollection,
+    ]);
+    return enriched;
   }
 
   async delete(userId: string, id: string) {
@@ -268,6 +275,8 @@ export class CollectionsService {
 
   private toCollectionResponse(
     collection: typeof Collection.$inferSelect,
+    linkCount: number = 0,
+    previewLinks: CollectionPreviewLink[] = [],
   ): CollectionResponse {
     return {
       id: collection.id,
@@ -276,7 +285,74 @@ export class CollectionsService {
       color: collection.color,
       createdAt: collection.created_at,
       updatedAt: collection.updated_at,
+      linkCount,
+      previewLinks,
     };
+  }
+
+  private async enrichCollections(
+    userId: string,
+    collections: (typeof Collection.$inferSelect)[],
+  ): Promise<CollectionResponse[]> {
+    if (collections.length === 0) return [];
+
+    const ids = collections.map((c) => c.id);
+
+    const [counts, linkRows] = await Promise.all([
+      this.dbProvider.db
+        .select({
+          collectionId: Link.collection_id,
+          total: count(),
+        })
+        .from(Link)
+        .where(
+          and(eq(Link.user_id, userId), inArray(Link.collection_id, ids)),
+        )
+        .groupBy(Link.collection_id),
+
+      this.dbProvider.db
+        .select({
+          id: Link.id,
+          title: Link.title,
+          url: Link.url,
+          favicon: LinkMetadata.favicon,
+          collectionId: Link.collection_id,
+          createdAt: Link.created_at,
+        })
+        .from(Link)
+        .innerJoin(LinkMetadata, eq(Link.id, LinkMetadata.link_id))
+        .where(
+          and(eq(Link.user_id, userId), inArray(Link.collection_id, ids)),
+        )
+        .orderBy(desc(Link.created_at)),
+    ]);
+
+    const countMap = new Map<string, number>();
+    for (const row of counts) {
+      countMap.set(row.collectionId, Number(row.total));
+    }
+
+    const previewMap = new Map<string, CollectionPreviewLink[]>();
+    for (const row of linkRows) {
+      const arr = previewMap.get(row.collectionId) ?? [];
+      if (arr.length < 3) {
+        arr.push({
+          id: row.id,
+          title: row.title,
+          url: row.url,
+          favicon: row.favicon,
+        });
+        previewMap.set(row.collectionId, arr);
+      }
+    }
+
+    return collections.map((c) =>
+      this.toCollectionResponse(
+        c,
+        countMap.get(c.id) ?? 0,
+        previewMap.get(c.id) ?? [],
+      ),
+    );
   }
 
   private async deleteUserListCache(userId: string): Promise<void> {

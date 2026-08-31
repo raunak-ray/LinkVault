@@ -27,6 +27,13 @@ export interface LinkMetadataResponse {
   ogImage: string | null;
 }
 
+export interface CollectionPreviewLink {
+  id: string;
+  title: string | null;
+  url: string;
+  favicon: string | null;
+}
+
 export interface CollectionResponse {
   id: string;
   name: string;
@@ -34,4 +41,6 @@ export interface CollectionResponse {
   color: string | null;
   createdAt: Date;
   updatedAt: Date;
+  linkCount: number;
+  previewLinks: CollectionPreviewLink[];
 }
