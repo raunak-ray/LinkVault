@@ -1,10 +1,9 @@
 import LinksView from "./components/LinksView";
-import useGetAllLinks from "./hooks/useGetAllLinks";
 
 export default function LinkPage() {
   // const {data} = useGetAllLinks();
   return (
-    <main>
+    <main className="max-w-md md:max-w-2xl lg:max-w-5xl mx-auto">
       <section>
         <LinksView />
       </section>

@@ -7,7 +7,6 @@ export default function useDashboard() {
   return useQuery({
     queryKey,
     queryFn: dashboardApi.dashboard,
-    refetchInterval: 10 * 1000,
     retry: 3,
   });
 }

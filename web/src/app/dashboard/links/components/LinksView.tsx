@@ -20,7 +20,8 @@ import {
 export default function LinksView({
   showSort = true,
   showOnlyFavourite = false,
-}: { showSort?: boolean, showOnlyFavourite?: boolean }) {
+  showAddButton = true,
+}: { showSort?: boolean, showOnlyFavourite?: boolean, showAddButton?: boolean }) {
   const [open, setIsOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
   const [sort, setSort] = useState<SortOptions>("newest");
@@ -48,7 +49,7 @@ export default function LinksView({
     <div className="flex flex-col gap-4">
       <div>
         <h1 className="text-md md:text-xl lg:text-2xl font-bold text-white">
-          {showOnlyFavourite ?  "Favourite Links" : "All Links"}
+          {showOnlyFavourite ? "Favourite Links" : "All Links"}
         </h1>
 
         <div className="flex items-center justify-between">
@@ -56,14 +57,16 @@ export default function LinksView({
             {links.length} links in your vault.
           </p>
 
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => setIsOpen(true)}
-            className="bg-blue-900/80 font-semibold rounded-lg hover:bg-blue-900/40 cursor-pointer"
-          >
-            Add Link
-          </Button>
+          {showAddButton && (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => setIsOpen(true)}
+              className="bg-blue-900/80 font-semibold rounded-lg hover:bg-blue-900/40 cursor-pointer"
+            >
+              Add Link
+            </Button>
+          )}
         </div>
       </div>
 
@@ -170,7 +173,7 @@ export default function LinksView({
               }
           `}
           >
-            <Star className="size-4" />
+            <Star className="size-4" style={{ pointerEvents: "none" }} />
             Favourite
           </Button>
         )}

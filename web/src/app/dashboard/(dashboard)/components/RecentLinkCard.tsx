@@ -49,6 +49,7 @@ export default function RecentLinkCard({ link }: { link: LinkResponse }) {
           >
             <Star
               className={`size-5 ${isFavourite ? "fill-yellow-400 text-yellow-400" : "text-white"}`}
+              style={{ pointerEvents: "none" }}
             />
           </Button>
         </CardTitle>

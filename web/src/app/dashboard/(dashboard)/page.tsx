@@ -27,7 +27,7 @@ export default function DashboardPage() {
     hour < 12 ? "Good Morning" : hour < 18 ? "Good Evening" : "Good Night";
 
   return (
-    <main className="flex flex-col gap-4">
+    <main className="flex flex-col gap-4 max-w-md md:max-w-2xl lg:max-w-5xl mx-auto">
       <div className="space-y-2">
         <h2 className="text-md md:text-xl text-white font-semibold">
           {greet}, <span>{user?.name}</span>
