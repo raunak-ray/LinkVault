@@ -6,6 +6,7 @@ import {
 } from "@/components/motion/animated-sidebar";
 import { PanelLeft } from "lucide-motion";
 import { Suspense } from "react";
+import ThemeToggle from "@/components/common/ThemeToggle";
 export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -19,19 +20,23 @@ export default function DashboardLayout({
     >
       <RequireAuth>
         <AnimatedSidebarProvider>
-          <div className="flex h-svh w-full overflow-hidden bg-[#0f1218] text-white">
+          <div className="flex h-svh w-full overflow-hidden bg-background text-foreground">
             <Sidebar />
 
-            <main className="relative min-w-0 flex-1 overflow-y-auto">
+            <main className="relative min-w-0 flex-1 overflow-y-auto bg-background">
               {/* Fixed header */}
-              <header className="sticky top-0 z-50 flex h-15 shrink-0 items-center border-b border-white/10 bg-[#0f1218] px-4">
-                <AnimatedSidebarTrigger className="text-white hover:bg-white/10">
+              <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/85 backdrop-blur px-4">
+                <AnimatedSidebarTrigger className="text-foreground hover:bg-accent">
                   <PanelLeft className="size-5" />
                 </AnimatedSidebarTrigger>
+                <div className="ml-auto flex items-center gap-2">
+                  <span className="hidden text-xs text-muted-foreground sm:inline">⌘K to search</span>
+                  <ThemeToggle className="text-muted-foreground hover:text-foreground" />
+                </div>
               </header>
 
               {/* Content */}
-              <div className="p-4 md:p-6">{children}</div>
+              <div className="min-w-0 flex-1 px-4 pb-28 pt-6 md:px-8 md:pb-16">{children}</div>
             </main>
           </div>
         </AnimatedSidebarProvider>

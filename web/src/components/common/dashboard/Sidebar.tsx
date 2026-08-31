@@ -18,11 +18,14 @@ import {
   PanelLeft,
   Settings,
   Star,
+  Moon,
+  Sun,
 } from "lucide-motion";
 import { Bookmark } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-provider";
 import { useLogout } from "@/lib/auth/use-logout";
+import { useTheme } from "@/components/provider/ThemeProvider";
 
 const content = [
   {
@@ -56,20 +59,21 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { theme, toggle } = useTheme();
 
   return (
     <AnimatedSidebar
       ariaLabel="Dashboard navigation"
       collapsible="icon"
-      panelClassName="border-white/20 bg-[#13171d]"
+      panelClassName="border-sidebar-border bg-sidebar"
     >
-      <AnimatedSidebarHeader className="px-4 pb-2 border-b border-white/10 h-15">
+      <AnimatedSidebarHeader className="px-4 pb-2 border-b border-sidebar-border h-14">
         <div className="flex gap-2 items-center justify-start">
-          <div className="rounded-full bg-blue-400/20 text-white p-2 border-white/10 border">
-            <Bookmark className="size-5 " />
+          <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Bookmark className="size-4" />
           </div>
-          <h2 className="group-data-[state=collapsed]/sidebar:hidden font-bold text-white">
-            LinkVault
+          <h2 className="group-data-[state=collapsed]/sidebar:hidden font-semibold text-sidebar-foreground text-[15px] tracking-tight">
+            Link Vault
           </h2>
         </div>
       </AnimatedSidebarHeader>
@@ -89,13 +93,10 @@ export default function Sidebar() {
                 return (
                   <AnimatedSidebarMenuItem key={item.id}>
                     <AnimatedSidebarMenuButton
-                      icon={<Icon className="size-4" />}
+                      icon={<Icon className="size-4 text-muted-foreground" />}
                       isActive={isActive}
                       href={item.href}
-                      className="
-                            text-white
-                            hover:bg-[#334b5f3f]
-                          "
+                      className="text-sidebar-foreground hover:bg-sidebar-accent data-[status=active]:bg-sidebar-accent data-[status=active]:font-medium"
                     >
                       {item.label}
                     </AnimatedSidebarMenuButton>
@@ -110,18 +111,29 @@ export default function Sidebar() {
         <AnimatedSidebarMenu>
           <AnimatedSidebarMenuItem>
             <AnimatedSidebarMenuButton
-              icon={<Settings className="size-4" />}
+              icon={
+                theme === "dark" ? <Sun className="size-4 text-muted-foreground" /> : <Moon className="size-4 text-muted-foreground" />
+              }
+              onSelect={toggle}
+              className="text-sidebar-foreground hover:bg-sidebar-accent"
+            >
+              {theme === "dark" ? "Light mode" : "Dark mode"}
+            </AnimatedSidebarMenuButton>
+          </AnimatedSidebarMenuItem>
+          <AnimatedSidebarMenuItem>
+            <AnimatedSidebarMenuButton
+              icon={<Settings className="size-4 text-muted-foreground" />}
               onSelect={() => router.push("/settings")}
-              className="text-white hover:bg-[#334b5f3f]"
+              className="text-sidebar-foreground hover:bg-sidebar-accent"
             >
               Settings
             </AnimatedSidebarMenuButton>
           </AnimatedSidebarMenuItem>
           <AnimatedSidebarMenuItem>
             <AnimatedSidebarMenuButton
-              icon={<LogOut className="size-4" />}
+              icon={<LogOut className="size-4 text-muted-foreground" />}
               onSelect={() => logout()}
-              className="text-white hover:bg-red-500/20"
+              className="text-sidebar-foreground hover:bg-destructive/10"
             >
               {isLoggingOut ? "Logging out..." : "Logout"}
             </AnimatedSidebarMenuButton>
