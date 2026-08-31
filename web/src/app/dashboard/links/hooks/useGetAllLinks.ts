@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { linkApi } from "../api/link.api";
 
 type UseGetAllLinksParams = {
@@ -7,6 +7,7 @@ type UseGetAllLinksParams = {
   isFavourite?: boolean;
   search?: string;
   sort?: string;
+  collectionId?: string;
 };
 
 export default function useGetAllLinks({
@@ -14,11 +15,12 @@ export default function useGetAllLinks({
   isFavourite,
   search,
   sort,
+  collectionId,
 }: UseGetAllLinksParams = {}) {
   return useInfiniteQuery({
-    queryKey: ["links", { limit, isFavourite, search, sort }],
+    queryKey: ["links", { limit, isFavourite, search, sort, collectionId }],
     queryFn: ({ pageParam }) =>
-      linkApi.getAll(pageParam, limit, isFavourite, search, sort),
+      linkApi.getAll(pageParam, limit, isFavourite, search, sort, collectionId),
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
       if (!lastPage.meta.hasNextPage) return undefined;

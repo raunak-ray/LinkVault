@@ -34,9 +34,10 @@ export const linkApi = {
     isFavourite?: boolean,
     search?: string,
     sort?: string,
+    collectionId?: string,
   ) => {
     const response = await api.get<PaginationResponse<LinkResponse>>("/links", {
-      params: { page, limit, isFavourite, search, sort },
+      params: { page, limit, isFavourite, search, sort, collectionId },
     });
     return response.data;
   },
