@@ -121,13 +121,13 @@ export default function Sidebar() {
             </AnimatedSidebarMenuButton>
           </AnimatedSidebarMenuItem>
           <AnimatedSidebarMenuItem>
-            <AnimatedSidebarMenuButton
+            {/*<AnimatedSidebarMenuButton
               icon={<Settings className="size-4 text-muted-foreground" />}
-              onSelect={() => router.push("/settings")}
+              onSelect={() => router.push("/dashboard/settings")}
               className="text-sidebar-foreground hover:bg-sidebar-accent"
             >
               Settings
-            </AnimatedSidebarMenuButton>
+            </AnimatedSidebarMenuButton>*/}
           </AnimatedSidebarMenuItem>
           <AnimatedSidebarMenuItem>
             <AnimatedSidebarMenuButton
