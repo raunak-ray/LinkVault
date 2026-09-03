@@ -11,7 +11,8 @@ import useCreateCollection from "../hooks/useCreateCollection";
 import { Input } from "@/components/motion/input";
 import { Button } from "@/components/motion/button/base";
 import { useEffect } from "react";
-import { Folder, Palette, Smile } from "lucide-motion";
+import { Folder, Palette } from "lucide-motion";
+import IconPicker from "@/components/common/IconPicker";
 
 const PRESET_COLORS = ["#6366F1", "#14b8a6", "#22c55e", "#f59e0b", "#f97316", "#ec4899", "#06b6d4", "#8b5cf6"];
 
@@ -88,21 +89,8 @@ export default function CreateCollectionModal({
           <Controller
             control={control}
             name="icon"
-            render={({ field, fieldState }) => (
-              <div>
-                <Input
-                  {...field}
-                  placeholder="e.g. code, folder, brain"
-                  label="Icon (lucide name, optional)"
-                  leftIcon={<Smile className="size-4" />}
-                  classNames={{
-                    label: "text-card-foreground font-semibold text-sm",
-                    input: "placeholder:text-muted-foreground/60",
-                  }}
-                  error={fieldState.error?.message}
-                />
-                <p className="text-xs text-muted-foreground/70 mt-1">Use any lucide icon name like `folder`, `code`, `book-open`.</p>
-              </div>
+            render={({ field }) => (
+              <IconPicker value={field.value ?? ""} onChange={field.onChange} />
             )}
           />
 

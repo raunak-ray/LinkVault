@@ -2,6 +2,7 @@
 // beui.dev/components/motion/animated-sidebar
 
 import { ChevronRight } from "lucide-react";
+import Link from "next/link";
 import {
   AnimatePresence,
   type HTMLMotionProps,
@@ -961,20 +962,20 @@ export function AnimatedSidebarMenuSubButton({
   );
 
   return href ? (
-    <motion.a
+    <Link
       href={href}
       target={target}
       rel={rel ?? (target === "_blank" ? "noreferrer noopener" : undefined)}
       aria-current={isActive ? "page" : undefined}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : undefined}
-      onClick={select}
-      whileTap={context.reduce || disabled ? undefined : { scale: 0.98 }}
-      transition={SPRING_PRESS}
+      onClick={select as any}
       className={interactiveClassName}
     >
-      {content}
-    </motion.a>
+      <motion.span className="flex w-full items-center gap-2" whileTap={context.reduce || disabled ? undefined : { scale: 0.98 }} transition={SPRING_PRESS}>
+        {content}
+      </motion.span>
+    </Link>
   ) : (
     <motion.button
       type="button"
@@ -1115,7 +1116,7 @@ export function AnimatedSidebarMenuButton({
   );
 
   return href ? (
-    <motion.a
+    <Link
       href={href}
       target={target}
       rel={rel ?? (target === "_blank" ? "noreferrer noopener" : undefined)}
@@ -1125,13 +1126,13 @@ export function AnimatedSidebarMenuButton({
       aria-label={panel.collapsed ? textLabel : undefined}
       title={panel.collapsed ? textLabel : undefined}
       tabIndex={disabled ? -1 : undefined}
-      onClick={select}
-      whileTap={context.reduce || disabled ? undefined : { scale: 0.98 }}
-      transition={SPRING_PRESS}
+      onClick={select as any}
       className={interactiveClassName}
     >
-      {content}
-    </motion.a>
+      <motion.span className="flex w-full items-center gap-2" whileTap={context.reduce || disabled ? undefined : { scale: 0.98 }} transition={SPRING_PRESS}>
+        {content}
+      </motion.span>
+    </Link>
   ) : (
     <motion.button
       type="button"

@@ -21,23 +21,19 @@ export default function LinksView({
   showSort = true,
   showOnlyFavourite = false,
   showAddButton = true,
-}: { showSort?: boolean, showOnlyFavourite?: boolean, showAddButton?: boolean }) {
+}: { showSort?: boolean; showOnlyFavourite?: boolean; showAddButton?: boolean }) {
   const [open, setIsOpen] = useState<boolean>(false);
   const [search, setSearch] = useState<string>("");
   const [sort, setSort] = useState<SortOptions>("newest");
-  const [isFavourite, setIsFavourite] = useState<boolean | undefined>(
-    undefined,
-  );
+  const [isFavourite, setIsFavourite] = useState<boolean | undefined>(undefined);
 
   const debouncedSearch = useDebounce(search);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
-    useGetAllLinks({
-      isFavourite: showOnlyFavourite ? true : isFavourite,
-      search:
-        debouncedSearch.trim().length > 0 ? debouncedSearch.trim() : undefined,
-      sort: SORT_OPTIONS[sort].value,
-    });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useGetAllLinks({
+    isFavourite: showOnlyFavourite ? true : isFavourite,
+    search: debouncedSearch.trim().length > 0 ? debouncedSearch.trim() : undefined,
+    sort: SORT_OPTIONS[sort].value,
+  });
 
   const handleFavouriteClick = () => {
     setIsFavourite((prev) => (prev === true ? undefined : true));
@@ -46,103 +42,40 @@ export default function LinksView({
   const links = data?.pages.flatMap((page) => page.data) ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-md md:text-xl lg:text-2xl font-bold text-white">
-          {showOnlyFavourite ? "Favourite Links" : "All Links"}
-        </h1>
-
-        <div className="flex items-center justify-between">
-          <p className="text-sm md:text-md lg:text-lg text-white/60">
-            {links.length} links in your vault.
-          </p>
-
-          {showAddButton && (
-            <Button
-              type="button"
-              variant="primary"
-              onClick={() => setIsOpen(true)}
-              className="bg-blue-900/80 font-semibold rounded-lg hover:bg-blue-900/40 cursor-pointer"
-            >
-              Add Link
-            </Button>
-          )}
+    <div className="mx-auto max-w-5xl flex flex-col gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">{showOnlyFavourite ? "Favourite Links" : "All Links"}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{isLoading ? "Loading..." : `${links.length} links in your vault.`}</p>
         </div>
+        {showAddButton && (
+          <Button type="button" size="sm" onClick={() => setIsOpen(true)} className="gap-2">
+            Add Link
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-2.5 flex-wrap">
-        {/* Search */}
-        <div className="flex-1 min-w-55">
+        <div className="flex-1 min-w-60">
           <Input
-            leftIcon={<Search className="size-4.5" />}
+            leftIcon={<Search className="size-4" />}
             type="text"
             aria-label="search input"
             placeholder="Search by title, url..."
-            className="
-              w-full
-              h-10
-              bg-transparent
-              border-white/15
-              text-white
-              placeholder:text-white/40
-              rounded-md
-              transition-colors
-              hover:border-white/25
-            "
             value={search}
             onChange={(val) => setSearch(val)}
+            classNames={{ field: "rounded-lg bg-card border-border", input: "text-sm" }}
           />
         </div>
 
-        {/* Sort */}
         {showSort && (
-          <Select
-            value={sort}
-            onValueChange={(val) => setSort(val as SortOptions)}
-            className="w-35 shrink-0"
-          >
-            <SelectTrigger
-              className="
-              h-10
-              bg-transparent
-              text-white
-              font-medium
-              border-white/15
-              rounded-md
-              transition-colors
-              hover:border-blue-400/60
-              hover:bg-blue-400/5
-              focus-visible:border-blue-400
-              focus-visible:ring-2
-              focus-visible:ring-blue-400/15
-            "
-            >
+          <Select value={sort} onValueChange={(val) => setSort(val as SortOptions)} className="w-36 shrink-0">
+            <SelectTrigger className="h-9 bg-card border-border">
               <SelectValue placeholder="Sort" />
             </SelectTrigger>
-
-            <SelectContent
-              className="
-            bg-[#252e37]
-            text-white
-            border-white/10
-            rounded-md
-            shadow-xl
-          "
-            >
+            <SelectContent>
               {Object.entries(SORT_OPTIONS).map(([value, option]) => (
-                <SelectItem
-                  key={value}
-                  value={value}
-                  className="
-                  cursor-pointer
-                  rounded-md
-                  text-white/70
-                  hover:bg-blue-400/10
-                  hover:text-blue-300
-                  focus:bg-blue-400/10
-                  focus:text-blue-300
-                "
-                >
+                <SelectItem key={value} value={value}>
                   {option.label}
                 </SelectItem>
               ))}
@@ -150,48 +83,48 @@ export default function LinksView({
           </Select>
         )}
 
-        {/* Favourite */}
         {!showOnlyFavourite && (
           <Button
             type="button"
-            variant="outline"
+            variant={isFavourite ? "primary" : "outline"}
+            size="md"
             onClick={handleFavouriteClick}
-            className={`
-            h-10
-            shrink-0
-            px-3.5
-            gap-2
-            font-medium
-            rounded-md
-            border-white/15
-            transition-colors
-            hover:bg-blue-400/10
-            hover:border-blue-400/60
-            ${isFavourite
-                ? "bg-blue-400/15 border-blue-400/60 text-blue-300"
-                : "bg-transparent text-white"
-              }
-          `}
+            className="gap-2 rounded-md"
           >
-            <Star className="size-4" style={{ pointerEvents: "none" }} />
+            <Star className="size-4" />
             Favourite
           </Button>
         )}
       </div>
 
-      {links.map((link) => (
-        <RecentLinkCard key={link.id} link={link} />
-      ))}
+      {isLoading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="surface-panel rounded-xl p-4 h-28 animate-pulse" />
+          ))}
+        </div>
+      ) : links.length === 0 ? (
+        <div className="surface-panel rounded-xl p-10 text-center border-dashed">
+          <p className="font-medium">No links found</p>
+          <p className="text-sm text-muted-foreground mt-1">{debouncedSearch ? `No results for "${debouncedSearch}"` : "Save your first link to get started."}</p>
+          {showAddButton && (
+            <Button size="sm" onClick={() => setIsOpen(true)} className="mt-4">
+              Add Link
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          {links.map((link) => (
+            <RecentLinkCard key={link.id} link={link} />
+          ))}
 
-      {hasNextPage && (
-        <Button
-          type="button"
-          onClick={() => fetchNextPage()}
-          disabled={isFetchingNextPage}
-          className="border border-white/20 bg-transparent mx-auto"
-        >
-          {isFetchingNextPage ? "Loading..." : "Load More"}
-        </Button>
+          {hasNextPage && (
+            <Button type="button" variant="outline" size="sm" onClick={() => fetchNextPage()} disabled={isFetchingNextPage} className="mx-auto">
+              {isFetchingNextPage ? "Loading..." : "Load More"}
+            </Button>
+          )}
+        </>
       )}
 
       <CreateLinkModal open={open} onOpenChange={setIsOpen} />

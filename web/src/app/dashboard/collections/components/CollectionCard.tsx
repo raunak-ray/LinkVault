@@ -2,7 +2,6 @@
 
 import { CollectionResponse } from "../../(dashboard)/types";
 import { DynamicIcon } from "lucide-react/dynamic";
-import Link from "next/link";
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { Button } from "@/components/motion/button/base";
@@ -11,6 +10,8 @@ import useDeleteCollection from "../hooks/useDeleteCollection";
 import EditCollectionModal from "./EditCollectionModal";
 import { useQueryClient } from "@tanstack/react-query";
 import { getFaviconUrl } from "@/lib/utils";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { useRouter } from "next/navigation";
 
 const FALLBACK_COLORS = ["#6366F1", "#14b8a6", "#22c55e", "#f59e0b", "#f97316", "#ec4899", "#06b6d4"];
 
@@ -45,6 +46,7 @@ export default function CollectionCard({ collection }: { collection: CollectionR
   const [menuOpen, setMenuOpen] = useState(false);
   const reduce = useReducedMotion();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { mutate: deleteCollection } = useDeleteCollection();
 
   const spring = { type: "spring" as const, stiffness: 320, damping: 26 };
@@ -55,6 +57,11 @@ export default function CollectionCard({ collection }: { collection: CollectionR
     deleteCollection(collection.id, {
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ["collections"] }),
     });
+  };
+
+  const handleCardClick = () => {
+    if (menuOpen || editOpen) return;
+    router.push(`/dashboard/collections/${collection.id}`);
   };
 
   return (
@@ -95,19 +102,29 @@ export default function CollectionCard({ collection }: { collection: CollectionR
         />
 
         <motion.div
-          animate={reduce ? {} : { y: hover ? -2 : 0 }}
+          role="button"
+          tabIndex={0}
+          onClick={handleCardClick}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleCardClick();
+            }
+          }}
+          animate={reduce ? {} : { y: hover ? -2 : 0, scale: hover ? 1.01 : 1 }}
+          whileHover={reduce ? undefined : { scale: 1.01 }}
           transition={spring}
-          className="surface-panel relative rounded-xl p-4 shadow-[var(--shadow-lift)]"
+          className="surface-panel group/card relative cursor-pointer rounded-xl p-4 shadow-[var(--shadow-lift)] transition-shadow hover:shadow-[var(--shadow-glow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span aria-hidden className="absolute inset-x-4 top-0 h-px rounded-full" style={{ backgroundColor: color }} />
 
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className="flex size-9 items-center justify-center rounded-lg border border-border shrink-0"
+                className="flex size-9 items-center justify-center rounded-lg border border-border shrink-0 transition-transform group-hover/card:scale-105"
                 style={{ backgroundColor: `color-mix(in oklab, ${color} 14%, transparent)` }}
               >
-                <DynamicIcon name={iconName as never} className="size-[18px]" style={{ color }} />
+                <DynamicIcon name={iconName as never} className="size-[18px] transition-transform group-hover/card:rotate-3" style={{ color }} />
               </div>
               <div className="min-w-0">
                 <h3 className="truncate text-sm font-semibold text-card-foreground">{collection.name}</h3>
@@ -117,49 +134,45 @@ export default function CollectionCard({ collection }: { collection: CollectionR
               </div>
             </div>
 
-            <div className="relative z-20">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`size-7 text-muted-foreground transition-opacity ${menuOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setMenuOpen((v) => !v);
-                }}
-                aria-label="Collection actions"
-              >
-                <Ellipsis className="size-4" />
-              </Button>
-              {menuOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} aria-hidden />
-                  <div className="absolute right-0 top-8 z-20 w-48 rounded-xl border border-border bg-popover p-1 shadow-[var(--shadow-lift)]">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setMenuOpen(false);
-                        setEditOpen(true);
-                      }}
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+            <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+              <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`size-7 text-muted-foreground transition-all hover:bg-accent ${menuOpen ? "opacity-100 bg-accent" : "opacity-0 group-hover:opacity-100 focus-visible:opacity-100"}`}
+                      aria-label="Collection actions"
                     >
-                      <Pencil className="size-4" /> Edit collection
-                    </button>
-                    <div className="my-1 h-px bg-border" />
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        handleDelete();
-                      }}
-                      className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="size-4" /> Delete collection
-                    </button>
-                  </div>
-                </>
-              )}
+                      <Ellipsis className="size-4" />
+                    </Button>
+                  }
+                />
+                <PopoverContent align="end" sideOffset={8} className="w-48 p-1">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setMenuOpen(false);
+                      setEditOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-accent"
+                  >
+                    <Pencil className="size-4" /> Edit collection
+                  </button>
+                  <div className="my-1 h-px bg-border" />
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleDelete();
+                    }}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="size-4" /> Delete collection
+                  </button>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -185,13 +198,6 @@ export default function CollectionCard({ collection }: { collection: CollectionR
             )}
             {remaining > 0 && <p className="pt-0.5 text-xs text-muted-foreground/80">+{remaining} more</p>}
           </div>
-
-          {/* full card link */}
-          <Link
-            href={`/dashboard/collections/${collection.id}`}
-            aria-label={`Open ${collection.name}`}
-            className="absolute inset-0 z-10 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          />
         </motion.div>
       </div>
 

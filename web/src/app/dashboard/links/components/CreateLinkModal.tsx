@@ -1,6 +1,5 @@
 import {
   CenterMorphModal,
-  CenterMorphModalClose,
   CenterMorphModalContent,
 } from "@/components/motion/center-morph-modal";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +10,7 @@ import { Input } from "@/components/motion/input";
 import { Link, Notebook } from "lucide-motion";
 import { Button } from "@/components/motion/button/base";
 import { useEffect } from "react";
+import CollectionPicker from "@/components/common/CollectionPicker";
 
 export default function CreateLinkModal({
   open,
@@ -45,113 +45,68 @@ export default function CreateLinkModal({
   return (
     <CenterMorphModal open={open} onOpenChange={onOpenChange}>
       <CenterMorphModalContent
-        ariaLabel="modal"
-        className="bg-[#151b22] border p-4 max-w-md md:max-w-xl flex flex-col gap-4 border-white/20"
+        ariaLabel="Save link modal"
+        className="bg-card border p-5 max-w-md md:max-w-xl flex flex-col gap-4 border-border"
       >
-        <div className="text-white flex flex-col items-start justify-center ">
-          <h1 className="text-md md:text-lg">Save a link</h1>
-          <p className="text-sm md:text-md text-white/60">
-            Paste a URL — the rest fills itself in.
-          </p>
+        <div className="flex flex-col items-start">
+          <h1 className="text-md md:text-lg font-semibold">Save a link</h1>
+          <p className="text-sm text-muted-foreground">Paste a URL — the rest fills itself in.</p>
         </div>
-        <div>
-          <form className="space-y-4" onSubmit={onSubmit}>
-            <Controller
-              control={control}
-              name="url"
-              render={({ field, fieldState }) => (
-                <>
-                  <Input
-                    {...field}
-                    placeholder="http:localhost:5000"
-                    name="url"
-                    leftIcon={<Link className="size-4" />}
-                    label="Url"
-                    className=""
-                    classNames={{
-                      label: "text-white font-bold text-sm md:text-md",
-                      input: "placeholder:text-white/60 text-white",
-                    }}
-                  />
-                  {fieldState.error && (
-                    <p className="text-red-500 text-sm md:text-md mt-2">
-                      {fieldState.error.message}
-                    </p>
-                  )}
-                </>
-              )}
-            />
+        <form className="space-y-4" onSubmit={onSubmit}>
+          <Controller
+            control={control}
+            name="url"
+            render={({ field, fieldState }) => (
+              <div>
+                <Input
+                  {...field}
+                  placeholder="https://example.com/article"
+                  leftIcon={<Link className="size-4" />}
+                  label="Url"
+                  classNames={{ label: "text-card-foreground font-medium text-sm", input: "placeholder:text-muted-foreground/60" }}
+                  error={fieldState.error?.message}
+                />
+              </div>
+            )}
+          />
 
-            <Controller
-              control={control}
-              name="title"
-              render={({ field, fieldState }) => (
-                <>
-                  <Input
-                    {...field}
-                    placeholder="Docs"
-                    name="title"
-                    leftIcon={<Notebook className="size-4" />}
-                    label="Title (optional)"
-                    className=""
-                    classNames={{
-                      label: "text-white font-bold text-sm md:text-md",
-                      input: "placeholder:text-white/60 text-white",
-                    }}
-                  />
-                  {fieldState.error && (
-                    <p className="text-red-500 text-sm md:text-md mt-2">
-                      {fieldState.error.message}
-                    </p>
-                  )}
-                </>
-              )}
-            />
+          <Controller
+            control={control}
+            name="title"
+            render={({ field, fieldState }) => (
+              <div>
+                <Input
+                  {...field}
+                  placeholder="My favorite docs"
+                  leftIcon={<Notebook className="size-4" />}
+                  label="Title (optional)"
+                  classNames={{ label: "text-card-foreground font-medium text-sm", input: "placeholder:text-muted-foreground/60" }}
+                  error={fieldState.error?.message}
+                />
+              </div>
+            )}
+          />
 
-            <Controller
-              control={control}
-              name="collectionId"
-              render={({ field, fieldState }) => (
-                <>
-                  <Input
-                    {...field}
-                    placeholder="Id"
-                    name="collectionId"
-                    label="Collection"
-                    className=""
-                    classNames={{
-                      label: "text-white font-bold text-sm md:text-md",
-                      input: "placeholder:text-white/60 text-white",
-                    }}
-                  />
-                  {fieldState.error && (
-                    <p className="text-red-500 text-sm md:text-md mt-2">
-                      {fieldState.error.message}
-                    </p>
-                  )}
-                </>
-              )}
-            />
+          <Controller
+            control={control}
+            name="collectionId"
+            render={({ field, fieldState }) => (
+              <div>
+                <CollectionPicker value={field.value} onChange={field.onChange} />
+                {fieldState.error && <p className="text-destructive text-sm mt-1">{fieldState.error.message}</p>}
+              </div>
+            )}
+          />
 
-            <div className="flex gap-2 items-center justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="text-white font-semibold hover:bg-black/30 border-white/20"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                className="bg-blue-800/50 hover:bg-blue-800/30 border-white/20 border"
-              >
-                Save Link
-              </Button>
-            </div>
-          </form>
-        </div>
+          <div className="flex gap-2 items-center justify-end pt-2">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" className="min-w-24">
+              Save Link
+            </Button>
+          </div>
+        </form>
       </CenterMorphModalContent>
     </CenterMorphModal>
   );

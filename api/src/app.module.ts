@@ -15,6 +15,7 @@ import { LinksModule } from './links/links.module';
 import { BullModule } from '@nestjs/bullmq';
 import { MetadataModule } from './metadata/metadata.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { SearchModule } from './search/search.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import Keyv from 'keyv';
 import KeyvRedis from '@keyv/redis';
@@ -58,6 +59,7 @@ import KeyvRedis from '@keyv/redis';
     LinksModule,
     MetadataModule,
     DashboardModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [

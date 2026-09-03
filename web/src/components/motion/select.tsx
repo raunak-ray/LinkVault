@@ -242,9 +242,9 @@ export function SelectTrigger({ className, children }: SelectTriggerProps) {
       }}
       className={cn(
         "relative z-10 flex w-full items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm outline-none transition-all",
-        "border-white/20 bg-transparent text-white",
-        "hover:border-blue-400/60 hover:bg-blue-400/5",
-        "focus-visible:border-blue-400 focus-visible:ring-2 focus-visible:ring-blue-400/20",
+        "border-border bg-card text-foreground",
+        "hover:border-ring/50 hover:bg-accent/50",
+        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20",
         "disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
@@ -256,7 +256,7 @@ export function SelectTrigger({ className, children }: SelectTriggerProps) {
         transition={ctx.reduce ? { duration: 0 } : CHEVRON_TRANSITION}
         className={cn(
           "transition-colors",
-          ctx.open ? "text-blue-400" : "text-white/50",
+          ctx.open ? "text-primary" : "text-muted-foreground",
         )}
       >
         <ChevronDown className="h-4 w-4" />
@@ -274,7 +274,7 @@ export function SelectValue({ placeholder, className }: SelectValueProps) {
   const ctx = useSelectContext("SelectValue");
   const label = ctx.labelFor(ctx.value);
   return (
-    <span className={cn(label ? "text-white" : "text-white/50", className)}>
+    <span className={cn(label ? "text-foreground" : "text-muted-foreground", className)}>
       {label ?? placeholder ?? "Select"}
     </span>
   );
@@ -383,7 +383,7 @@ export function SelectContent({ className, children }: SelectContentProps) {
       // flush against the trigger, then separates into its own rounded pill;
       // sits above or below depending on available space
       className={cn(
-        "absolute left-0 right-0 z-20 rounded-md border border-white/10 bg-[#252e37] shadow-xl shadow-black/30",
+        "absolute left-0 right-0 z-20 rounded-md border border-border bg-popover shadow-[var(--shadow-lift)]",
         isTop ? "bottom-full" : "top-full",
         className,
       )}
@@ -433,9 +433,7 @@ export function SelectItem({
         onClick={() => ctx.select(value)}
         className={cn(
           "flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm outline-none transition-colors",
-          selected
-            ? "bg-blue-400/20 text-blue-300"
-            : "text-white/70 hover:bg-blue-400/10 hover:text-blue-300 focus-visible:bg-blue-400/10 focus-visible:text-blue-300",
+          selected ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground",
           "disabled:pointer-events-none disabled:opacity-50",
           className,
         )}

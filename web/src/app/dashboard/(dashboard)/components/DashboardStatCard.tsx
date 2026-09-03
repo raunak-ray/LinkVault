@@ -11,14 +11,14 @@ export default function DashboardStatsCard({
   icon: ComponentType<{ className?: string }>;
 }) {
   return (
-    <Card className="flex-1 w-full bg-[#131822] border border-white/10 hover:border-white/40 transition-all duration-100 ease-in hover:shadow-[2px_2px_8px_0_#111]">
-      <CardHeader className="">
-        <CardTitle className="flex gap-2 items-center text-sm md:text-md justify-start text-white/60">
+    <Card className="flex-1 w-full surface-panel transition-all hover:shadow-[var(--shadow-lift)]">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex gap-2 items-center text-sm justify-start text-muted-foreground">
           <Icon className="size-4" />
           {title || "Title"}
         </CardTitle>
       </CardHeader>
-      <CardContent className="text-2xl text-white">{value || 0}</CardContent>
+      <CardContent className="text-2xl font-semibold">{value || 0}</CardContent>
     </Card>
   );
 }

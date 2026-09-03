@@ -22,6 +22,8 @@ export const metadata: Metadata = {
   description: "Your application description",
 };
 
+const themeScript = `(() => { try { const s = localStorage.getItem('linkvault-theme') || 'system'; const d = window.matchMedia('(prefers-color-scheme: dark)').matches; const r = s === 'system' ? (d ? 'dark' : 'light') : s; if (r === 'dark') document.documentElement.classList.add('dark'); } catch {} })();`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
@@ -29,6 +31,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${manrope.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground">
         <ThemeProvider>
           <QueryProvider>

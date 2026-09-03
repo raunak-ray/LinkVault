@@ -7,17 +7,14 @@ import {
 import { PanelLeft } from "lucide-motion";
 import { Suspense } from "react";
 import ThemeToggle from "@/components/common/ThemeToggle";
+import GlobalSearch from "@/components/common/header/GlobalSearch";
+import UserMenu from "@/components/common/header/UserMenu";
+import HeaderAddLink from "@/components/common/header/HeaderAddLink";
 export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#070d15]">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="flex h-svh items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary" /></div>}>
       <RequireAuth>
         <AnimatedSidebarProvider>
           <div className="flex h-svh w-full overflow-hidden bg-background text-foreground">
@@ -29,9 +26,13 @@ export default function DashboardLayout({
                 <AnimatedSidebarTrigger className="text-foreground hover:bg-accent">
                   <PanelLeft className="size-5" />
                 </AnimatedSidebarTrigger>
+                <div className="flex-1 flex items-center justify-center px-2 md:px-4 max-w-2xl mx-auto">
+                  <GlobalSearch />
+                </div>
                 <div className="ml-auto flex items-center gap-2">
-                  <span className="hidden text-xs text-muted-foreground sm:inline">⌘K to search</span>
-                  <ThemeToggle className="text-muted-foreground hover:text-foreground" />
+                  <HeaderAddLink />
+                  <ThemeToggle className="text-muted-foreground hover:text-foreground hidden sm:flex" />
+                  <UserMenu />
                 </div>
               </header>
 

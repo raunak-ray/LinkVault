@@ -93,7 +93,7 @@ export default function CollectionDetailView({ id }: { id: string }) {
 
       {/* Collection header card - inspired by lovable but keep vault taste */}
       <Card className="relative overflow-hidden surface-panel">
-        <div className="h-1 w-full" style={{ backgroundColor: color }} />
+        <div className="h-1 w-full top-0 absolute rounded-2xl" style={{ backgroundColor: color }} />
         <div className="p-5 md:p-6 flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex gap-4 items-start min-w-0">
@@ -140,7 +140,7 @@ export default function CollectionDetailView({ id }: { id: string }) {
             placeholder="Search in this collection..."
             value={search}
             onChange={(v) => setSearch(v)}
-            className="h-9"
+            className=""
             classNames={{ field: "rounded-lg bg-card border-border" }}
           />
         </div>

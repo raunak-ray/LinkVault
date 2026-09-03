@@ -11,8 +11,9 @@ import useUpdateCollection from "../hooks/useUpdateCollection";
 import { Input } from "@/components/motion/input";
 import { Button } from "@/components/motion/button/base";
 import { useEffect } from "react";
-import { Folder, Palette, Smile } from "lucide-motion";
+import { Folder, Palette } from "lucide-motion";
 import { CollectionResponse } from "../../(dashboard)/types";
+import IconPicker from "@/components/common/IconPicker";
 
 const PRESET_COLORS = ["#6366F1", "#14b8a6", "#22c55e", "#f59e0b", "#f97316", "#ec4899", "#06b6d4", "#8b5cf6"];
 
@@ -94,16 +95,8 @@ export default function EditCollectionModal({
           <Controller
             control={control}
             name="icon"
-            render={({ field, fieldState }) => (
-              <Input
-                {...field}
-                value={field.value ?? ""}
-                placeholder="e.g. folder, code"
-                label="Icon"
-                leftIcon={<Smile className="size-4" />}
-                classNames={{ label: "text-card-foreground font-semibold text-sm", input: "placeholder:text-muted-foreground/60" }}
-                error={fieldState.error?.message}
-              />
+            render={({ field }) => (
+              <IconPicker value={field.value ?? ""} onChange={(v) => field.onChange(v)} />
             )}
           />
 

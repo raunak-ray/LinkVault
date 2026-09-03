@@ -179,9 +179,15 @@ const CENTER_UNFOLD_TRANSITION = {
 
 function getFocusableElements(root: HTMLElement | null) {
   if (!root) return [];
-  return Array.from(
-    root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-  ).filter((element) => element.tabIndex >= 0);
+  const panelEls = Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter((el) => el.tabIndex >= 0);
+  // include portal popovers (rendered outside panel via Base UI) so Tab can reach search inputs inside them
+  const portalRoots = Array.from(document.querySelectorAll<HTMLElement>("[data-popover]"));
+  const portalEls: HTMLElement[] = [];
+  for (const pr of portalRoots) {
+    portalEls.push(...Array.from(pr.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter((el) => el.tabIndex >= 0));
+    if (pr.matches(FOCUSABLE_SELECTOR) && pr.tabIndex >= 0) portalEls.push(pr);
+  }
+  return [...panelEls, ...portalEls];
 }
 
 export function CenterMorphModalContent({
@@ -214,6 +220,18 @@ export function CenterMorphModalContent({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape" && dismissible) {
+        // if a portal popover is open, let it handle Escape first
+        const activePopover = document.querySelector("[data-popover]");
+        if (activePopover && (document.activeElement?.closest("[data-popover]") || activePopover.contains(document.activeElement))) {
+          return;
+        }
+        // also check if any popover is rendered (open popovers are in DOM)
+        if (document.querySelector("[data-popover]")) {
+          // if focus is inside modal but popover exists, give popover a chance to close
+          // we still prevent modal close if popover will handle it
+          const popoverOpen = document.querySelector("[data-popover]");
+          if (popoverOpen) return;
+        }
         event.preventDefault();
         context.setOpen(false);
         return;

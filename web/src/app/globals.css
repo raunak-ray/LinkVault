@@ -50,12 +50,12 @@
 
 :root {
   --radius: 0.85rem;
-  --background: oklch(98.8% 0.002 250);
+  --background: oklch(97% 0.008 250);
   --foreground: oklch(26% 0.018 258);
-  --surface: oklch(96.8% 0.004 250);
-  --card: oklch(100% 0 0);
+  --surface: oklch(94.5% 0.01 250);
+  --card: oklch(98.2% 0.004 250);
   --card-foreground: oklch(26% 0.018 258);
-  --popover: oklch(100% 0 0);
+  --popover: oklch(98.5% 0.005 250);
   --popover-foreground: oklch(26% 0.018 258);
   --primary: oklch(56% 0.132 245);
   --primary-foreground: oklch(99% 0.002 250);
@@ -63,33 +63,33 @@
   --brand-soft: oklch(93% 0.035 245);
   --mint: oklch(66% 0.1 172);
   --mint-soft: oklch(94% 0.035 172);
-  --secondary: oklch(96.2% 0.005 250);
+  --secondary: oklch(94.5% 0.008 250);
   --secondary-foreground: oklch(30% 0.018 258);
-  --muted: oklch(96.4% 0.005 250);
+  --muted: oklch(94% 0.008 250);
   --muted-foreground: oklch(52% 0.016 258);
-  --accent: oklch(94.5% 0.024 245);
-  --accent-foreground: oklch(38% 0.09 248);
+  --accent: oklch(92% 0.02 245);
+  --accent-foreground: oklch(32% 0.08 248);
   --destructive: oklch(58% 0.19 25);
   --destructive-foreground: oklch(99% 0.002 250);
-  --border: oklch(91.6% 0.006 255);
-  --input: oklch(91.6% 0.006 255);
+  --border: oklch(90% 0.01 250);
+  --input: oklch(90% 0.01 250);
   --ring: oklch(56% 0.132 245);
   --chart-1: oklch(56% 0.132 245);
   --chart-2: oklch(66% 0.1 172);
   --chart-3: oklch(70% 0.09 205);
   --chart-4: oklch(74% 0.1 130);
   --chart-5: oklch(68% 0.11 60);
-  --sidebar: oklch(97.4% 0.004 250);
+  --sidebar: oklch(96% 0.007 250);
   --sidebar-foreground: oklch(30% 0.018 258);
   --sidebar-primary: oklch(56% 0.132 245);
   --sidebar-primary-foreground: oklch(99% 0.002 250);
-  --sidebar-accent: oklch(94.2% 0.008 250);
+  --sidebar-accent: oklch(92.5% 0.01 250);
   --sidebar-accent-foreground: oklch(26% 0.018 258);
-  --sidebar-border: oklch(91.8% 0.006 255);
+  --sidebar-border: oklch(90% 0.01 250);
   --sidebar-ring: oklch(56% 0.132 245);
-  --shadow-soft: 0 1px 2px oklch(40% 0.03 255 / 0.05), 0 6px 20px -12px oklch(40% 0.03 255 / 0.2);
-  --shadow-lift: 0 2px 4px oklch(40% 0.03 255 / 0.06), 0 18px 40px -22px oklch(40% 0.03 255 / 0.32);
-  --shadow-glow: 0 0 0 1px oklch(58% 0.13 237 / 0.14), 0 20px 60px -30px oklch(58% 0.13 237 / 0.55);
+  --shadow-soft: 0 1px 2px oklch(40% 0.03 255 / 0.04), 0 8px 24px -16px oklch(40% 0.03 255 / 0.12);
+  --shadow-lift: 0 2px 8px oklch(40% 0.03 255 / 0.05), 0 12px 32px -18px oklch(40% 0.03 255 / 0.18);
+  --shadow-glow: 0 0 0 1px oklch(58% 0.13 237 / 0.10), 0 20px 60px -30px oklch(58% 0.13 237 / 0.45);
 }
 
 .dark {
