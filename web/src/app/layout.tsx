@@ -5,6 +5,8 @@ import QueryProvider from "@/components/provider/QueryProvider";
 import { AuthProvider } from "@/lib/auth/auth-provider";
 import ThemeProvider from "@/components/provider/ThemeProvider";
 
+export const runtime = "nodejs";
+
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
