@@ -6,29 +6,38 @@ import {
 } from "@/components/motion/animated-sidebar";
 import { PanelLeft } from "lucide-motion";
 import { Suspense } from "react";
-
+import ThemeToggle from "@/components/common/ThemeToggle";
+import GlobalSearch from "@/components/common/header/GlobalSearch";
+import UserMenu from "@/components/common/header/UserMenu";
+import HeaderAddLink from "@/components/common/header/HeaderAddLink";
 export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <Suspense
-      fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#070d15]">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="flex h-svh items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary" /></div>}>
       <RequireAuth>
         <AnimatedSidebarProvider>
-          <div className="flex min-h-svh w-full bg-[#070d15] text-white">
+          <div className="flex h-svh w-full overflow-hidden bg-background text-foreground">
             <Sidebar />
-            <main className="min-w-0 flex-1">
-              <header className="flex h-15 items-center px-4 border-b border-white/10">
-                <AnimatedSidebarTrigger className="text-white hover:bg-white/10">
+
+            <main className="relative min-w-0 flex-1 overflow-y-auto bg-background">
+              {/* Fixed header */}
+              <header className="sticky top-0 z-40 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/85 backdrop-blur px-4">
+                <AnimatedSidebarTrigger className="text-foreground hover:bg-accent">
                   <PanelLeft className="size-5" />
                 </AnimatedSidebarTrigger>
+                <div className="flex-1 flex items-center justify-center px-2 md:px-4 max-w-2xl mx-auto">
+                  <GlobalSearch />
+                </div>
+                <div className="ml-auto flex items-center gap-2">
+                  <HeaderAddLink />
+                  <ThemeToggle className="text-muted-foreground hover:text-foreground hidden sm:flex" />
+                  <UserMenu />
+                </div>
               </header>
-              <div className="p-4 md:p-6">{children}</div>
+
+              {/* Content */}
+              <div className="min-w-0 flex-1 px-4 pb-28 pt-6 md:px-8 md:pb-16">{children}</div>
             </main>
           </div>
         </AnimatedSidebarProvider>

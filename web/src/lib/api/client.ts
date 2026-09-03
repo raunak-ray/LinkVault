@@ -146,12 +146,17 @@ api.interceptors.response.use(
       clearAccessToken();
 
       if (typeof window !== "undefined") {
-        const currentPath = window.location.pathname + window.location.search;
-        // avoid redirect loop if already on auth pages
-        const isAuthPage =
+        const pathname = window.location.pathname;
+        const currentPath = pathname + window.location.search;
+        // Public pages must never force-redirect to /login.
+        // "/" is the public landing page — anyone can stay there,
+        // authenticated or not. /login and /register are auth pages
+        // where a redirect would loop.
+        const isPublicPage =
+          pathname === "/" ||
           currentPath.startsWith("/login") ||
           currentPath.startsWith("/register");
-        if (!isAuthPage) {
+        if (!isPublicPage) {
           const next = encodeURIComponent(currentPath);
           window.location.href = `/login?next=${next}`;
         }

@@ -16,3 +16,19 @@ export interface ApiErrorResponse {
 }
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+export interface PaginationResponse<T> {
+  success: true;
+  statusCode: number;
+  message: string;
+  data: T[];
+  meta: PaginationMeta;
+}
+
+export interface PaginationMeta {
+  total: number;
+  totalPages: number;
+  currentPage: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}

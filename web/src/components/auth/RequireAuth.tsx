@@ -26,10 +26,10 @@ export default function RequireAuth({
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#070d15]">
+      <div className="flex min-h-[50vh] items-center justify-center py-16">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
-          <p className="text-sm text-white/60">Loading your vault...</p>
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
+          <p className="text-sm text-muted-foreground">Loading your vault...</p>
         </div>
       </div>
     );
@@ -37,8 +37,8 @@ export default function RequireAuth({
 
   if (!isAuthenticated) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#070d15]">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/20 border-t-white" />
+      <div className="flex min-h-[50vh] items-center justify-center py-16">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-border border-t-primary" />
       </div>
     );
   }
