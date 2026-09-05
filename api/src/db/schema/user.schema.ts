@@ -1,7 +1,11 @@
 import { timestamp } from 'drizzle-orm/pg-core';
+import { pgEnum } from 'drizzle-orm/pg-core';
 import { index } from 'drizzle-orm/pg-core';
 import { varchar } from 'drizzle-orm/pg-core';
 import { pgTable, uuid } from 'drizzle-orm/pg-core';
+
+const values = ['local', 'google', 'github'] as const;
+export const AuthProvider = pgEnum('auth_provider', values);
 
 export const User = pgTable(
   'tbl_user',
@@ -9,8 +13,9 @@ export const User = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     name: varchar('name', { length: 255 }).notNull(),
     email: varchar('email', { length: 255 }).notNull().unique(),
-    password: varchar('password', { length: 255 }).notNull(),
+    password: varchar('password', { length: 255 }),
     avatar: varchar('avatar', { length: 500 }),
+    provider: AuthProvider('provider').default('local'),
     deleted_at: timestamp('deleted_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },

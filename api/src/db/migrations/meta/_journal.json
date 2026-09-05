@@ -57,6 +57,13 @@
       "when": 1787337329443,
       "tag": "0007_gorgeous_redwing",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788620725117,
+      "tag": "0008_uneven_wallow",
+      "breakpoints": true
     }
   ]
 }

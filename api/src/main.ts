@@ -29,6 +29,11 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   await app.listen(PORT);
-  logger.log(`API started on: http://localhost:${PORT}/`);
+
+  if (process.env.NODE_ENV === 'production') {
+    logger.log(`API started on: ${process.env.BASE_URL}/`);
+  } else {
+    logger.log(`API started on: http://localhost:${PORT}/`);
+  }
 }
 void bootstrap();
