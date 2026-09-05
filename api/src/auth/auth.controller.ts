@@ -18,10 +18,14 @@ import { AuthGuard } from './guards/auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { ResponseMessage } from 'src/common/decorators/response-message.decorator';
 import { type Request, type Response } from 'express';
+import { SessionService } from './services/session.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly sessionService: SessionService,
+  ) {}
 
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @ResponseMessage('User registered successfully')
@@ -82,7 +86,7 @@ export class AuthController {
   @ResponseMessage('Sessions fetched successfully')
   @Get('sessions')
   async sessions(@CurrentUser('sub') sub: string) {
-    const data = await this.authService.getSessions(sub);
+    const data = await this.sessionService.getSessions(sub);
     return data;
   }
 
@@ -93,7 +97,7 @@ export class AuthController {
     @CurrentUser('sub') sub: string,
     @Param('id') id: string,
   ) {
-    const data = await this.authService.revokeSession(id, sub);
+    const data = await this.sessionService.revokeSession(id, sub);
     return data;
   }
 }

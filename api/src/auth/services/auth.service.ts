@@ -13,8 +13,8 @@ import { TokenService } from './token.service';
 import { Request, Response } from 'express';
 import { RefreshTokenService } from './refresh-token.service';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
-import { randomUUID } from 'crypto';
 import { AVATAR_URL } from '../constants';
+import { SessionService } from './session.service';
 
 const DUMMY_HASH =
   '$2b$10$CwTycUXWue0Thq9StjUM0uJ8X1XHd8DkVq8YfYkXo0D0D9mH3m2Vq';
@@ -26,6 +26,7 @@ export class AuthService {
     private readonly userService: UsersService,
     private readonly tokenService: TokenService,
     private readonly refreshTokenService: RefreshTokenService,
+    private readonly sessionService: SessionService,
   ) {}
 
   async registerUser(input: RegisterUserDto, res: Response) {
@@ -49,7 +50,11 @@ export class AuthService {
       avatar,
     });
 
-    const { accessToken } = await this.issueSession(user.id, user.email, res);
+    const { accessToken } = await this.sessionService.issueSession(
+      user.id,
+      user.email,
+      res,
+    );
 
     this.logger.log(`User registered (id: ${user.id})`);
 
@@ -69,7 +74,7 @@ export class AuthService {
 
     const safeUser = this.userService.mapUser(user);
 
-    const { accessToken } = await this.issueSession(
+    const { accessToken } = await this.sessionService.issueSession(
       safeUser.id,
       safeUser.email,
       res,
@@ -114,7 +119,7 @@ export class AuthService {
         `Refresh token reuse detected for user ${session.user_id}; revoking all sessions`,
       );
       await this.refreshTokenService.revokeAllForUser(session.user_id);
-      this.clearRefreshToken(res);
+      this.sessionService.clearRefreshToken(res);
       throw new UnauthorizedException('Session has been revoked');
     }
 
@@ -128,11 +133,12 @@ export class AuthService {
 
     await this.refreshTokenService.revoke(session.id);
 
-    const { accessToken, refreshExpiry } = await this.issueSession(
-      session.user_id,
-      payload.email,
-      res,
-    );
+    const { accessToken, refreshExpiry } =
+      await this.sessionService.issueSession(
+        session.user_id,
+        payload.email,
+        res,
+      );
 
     this.logger.debug(
       `Refresh token rotated for user ${session.user_id} (session ${session.id})`,
@@ -155,7 +161,7 @@ export class AuthService {
       }
     }
 
-    this.clearRefreshToken(res);
+    this.sessionService.clearRefreshToken(res);
     return { success: true };
   }
 
@@ -167,79 +173,5 @@ export class AuthService {
     }
 
     return user;
-  }
-
-  async getSessions(userId: string) {
-    const user = await this.userService.findById(userId);
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const sessions = await this.refreshTokenService.findActiveByUserId(userId);
-
-    return sessions.map((session) => ({
-      id: session.id,
-      createdAt: session.created_at,
-      expiresAt: session.expires_at,
-    }));
-  }
-
-  async revokeSession(sessionId: string, userId: string) {
-    const session = await this.refreshTokenService.findById(sessionId);
-
-    if (!session || session.user_id !== userId) {
-      throw new NotFoundException('Session not found');
-    }
-
-    await this.refreshTokenService.revoke(sessionId);
-    this.logger.log(`Session revoked (id: ${sessionId}, user: ${userId})`);
-    return { success: true };
-  }
-
-  private async issueSession(userId: string, email: string, res: Response) {
-    const jti = randomUUID();
-    const { accessToken, refreshToken, refreshExpiry } =
-      await this.tokenService.issueTokenPair({
-        sub: userId,
-        email,
-        jti,
-      });
-
-    this.storeRefreshToken(refreshToken, res, refreshExpiry);
-
-    const refreshTokenHash =
-      await this.tokenService.hashRefreshToken(refreshToken);
-
-    await this.refreshTokenService.create({
-      id: jti,
-      token: refreshTokenHash,
-      expiry: refreshExpiry,
-      userId,
-    });
-
-    return { accessToken, refreshExpiry };
-  }
-
-  private storeRefreshToken(token: string, res: Response, expiresAt: Date) {
-    res.cookie('refreshToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: expiresAt.getTime() - Date.now(),
-    });
-  }
-
-  private clearRefreshToken(res: Response) {
-    // Clear both '/' and legacy '/auth' paths to purge stale cookies from previous builds
-    const opts = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      path: '/',
-    };
-    res.clearCookie('refreshToken', opts);
-    res.clearCookie('refreshToken', { ...opts, path: '/auth' });
   }
 }
