@@ -11,6 +11,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RefreshTokenService } from 'src/auth/services/refresh-token.service';
 import { DEFAULT_COLLECTION } from 'src/collections/constants';
+import { UserResponse } from './interface/user-response.interface';
 
 @Injectable()
 export class UsersService {
@@ -118,7 +119,7 @@ export class UsersService {
     this.logger.log(`Account deleted (id: ${id})`);
   }
 
-  mapUser(user: typeof User.$inferSelect) {
+  mapUser(user: typeof User.$inferSelect): UserResponse {
     return {
       id: user.id,
       name: user.name,

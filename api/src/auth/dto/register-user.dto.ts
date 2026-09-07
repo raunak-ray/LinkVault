@@ -1,6 +1,7 @@
 import {
   IsEmail,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
@@ -20,7 +21,7 @@ export class RegisterUserDto {
   email!: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MinLength(8, {
     message: 'Password must be at least 8 characters long',
   })
@@ -28,5 +29,5 @@ export class RegisterUserDto {
     message:
       'Password must contain at least one uppercase letter, one lowercase letter, and one number',
   })
-  password!: string;
+  password?: string;
 }

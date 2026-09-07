@@ -1,7 +1,3 @@
-export const AuthProvider = {
-  LOCAL: 'local',
-  GOOGLE: 'google',
-  GITHUB: 'github',
-} as const;
+import { AuthProvider } from 'src/db/schema';
 
 export type AuthProviderType = (typeof AuthProvider)[keyof typeof AuthProvider];

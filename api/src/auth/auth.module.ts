@@ -6,6 +6,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { TokenService } from './services/token.service';
 import { AuthGuard } from './guards/auth.guard';
 import { RefreshTokenService } from './services/refresh-token.service';
+import { SessionService } from './services/session.service';
+import { OAuthService } from './services/oauth.service';
 
 @Module({
   imports: [JwtModule.register({})],
@@ -15,6 +17,8 @@ import { RefreshTokenService } from './services/refresh-token.service';
     TokenService,
     RefreshTokenService,
     AuthGuard,
+    SessionService,
+    OAuthService,
   ],
   exports: [AuthGuard, TokenService, RefreshTokenService],
   controllers: [AuthController],

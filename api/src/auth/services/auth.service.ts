@@ -15,6 +15,7 @@ import { RefreshTokenService } from './refresh-token.service';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { AVATAR_URL } from '../constants';
 import { SessionService } from './session.service';
+import { AuthProvider } from '../constants';
 
 const DUMMY_HASH =
   '$2b$10$CwTycUXWue0Thq9StjUM0uJ8X1XHd8DkVq8YfYkXo0D0D9mH3m2Vq';
@@ -40,7 +41,7 @@ export class AuthService {
     }
 
     const SALT = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(input.password, SALT);
+    const hashedPassword = await bcrypt.hash(String(input.password), SALT);
 
     const avatar = AVATAR_URL + input.email;
 
@@ -48,6 +49,7 @@ export class AuthService {
       ...input,
       password: hashedPassword,
       avatar,
+      authProvider: AuthProvider.LOCAL,
     });
 
     const { accessToken } = await this.sessionService.issueSession(
