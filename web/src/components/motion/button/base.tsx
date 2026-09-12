@@ -27,6 +27,8 @@ export interface ButtonProps
   variant?: ButtonVariant;
   size?: ButtonSize;
   pressScale?: number;
+  /** Disable tap/hover scale motion. Keeps the beui Button purely static. */
+  disableScale?: boolean;
   /** Spawn a Material-style ripple from the press point. Off by default. */
   ripple?: boolean;
   children?: ReactNode;
@@ -37,6 +39,8 @@ export interface ButtonLinkProps
   variant?: ButtonVariant;
   size?: ButtonSize;
   pressScale?: number;
+  /** Disable tap/hover scale motion. Keeps the beui Button purely static. */
+  disableScale?: boolean;
   children?: ReactNode;
 }
 
@@ -63,6 +67,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       variant = "primary",
       size = "md",
       pressScale = 0.93,
+      disableScale = false,
       ripple = false,
       className,
       children,
@@ -75,6 +80,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const canHover = useHoverCapable();
     const [ripples, setRipples] = useState<Ripple[]>([]);
     const nextId = useRef(0);
+    const staticMotion = reduce || disableScale;
 
     const handlePointerDown = useCallback(
       (event: PointerEvent<HTMLButtonElement>) => {
@@ -101,8 +107,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref}
         type="button"
-        whileTap={reduce ? undefined : { scale: pressScale }}
-        whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
+        whileTap={staticMotion ? undefined : { scale: pressScale }}
+        whileHover={staticMotion || !canHover ? undefined : { scale: 1.02 }}
         transition={SPRING_PRESS}
         onPointerDown={handlePointerDown}
         className={cn(
@@ -155,6 +161,7 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
       variant = "primary",
       size = "md",
       pressScale = 0.93,
+      disableScale = false,
       className,
       children,
       ...rest
@@ -163,12 +170,13 @@ export const ButtonLink = forwardRef<HTMLAnchorElement, ButtonLinkProps>(
   ) {
     const reduce = useReducedMotion();
     const canHover = useHoverCapable();
+    const staticMotion = reduce || disableScale;
 
     return (
       <motion.a
         ref={ref}
-        whileTap={reduce ? undefined : { scale: pressScale }}
-        whileHover={reduce || !canHover ? undefined : { scale: 1.02 }}
+        whileTap={staticMotion ? undefined : { scale: pressScale }}
+        whileHover={staticMotion || !canHover ? undefined : { scale: 1.02 }}
         transition={SPRING_PRESS}
         className={cn(
           "inline-flex items-center justify-center font-medium select-none",

@@ -87,9 +87,15 @@
   --sidebar-accent-foreground: oklch(26% 0.018 258);
   --sidebar-border: oklch(90% 0.01 250);
   --sidebar-ring: oklch(56% 0.132 245);
-  --shadow-soft: 0 1px 2px oklch(40% 0.03 255 / 0.04), 0 8px 24px -16px oklch(40% 0.03 255 / 0.12);
-  --shadow-lift: 0 2px 8px oklch(40% 0.03 255 / 0.05), 0 12px 32px -18px oklch(40% 0.03 255 / 0.18);
-  --shadow-glow: 0 0 0 1px oklch(58% 0.13 237 / 0.10), 0 20px 60px -30px oklch(58% 0.13 237 / 0.45);
+  --shadow-soft:
+    0 1px 2px oklch(40% 0.03 255 / 0.04),
+    0 8px 24px -16px oklch(40% 0.03 255 / 0.12);
+  --shadow-lift:
+    0 2px 8px oklch(40% 0.03 255 / 0.05),
+    0 12px 32px -18px oklch(40% 0.03 255 / 0.18);
+  --shadow-glow:
+    0 0 0 1px oklch(58% 0.13 237 / 0.1),
+    0 20px 60px -30px oklch(58% 0.13 237 / 0.45);
 }
 
 .dark {
@@ -137,12 +143,19 @@
     @apply border-border outline-ring/50;
   }
 
-  body {
-    @apply bg-background text-foreground;
-  }
-
   html {
     @apply font-sans;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    @apply bg-background text-foreground;
   }
 }
 
