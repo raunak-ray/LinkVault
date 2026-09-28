@@ -9,7 +9,7 @@ import { Ellipsis, Pencil, Trash2 } from "lucide-motion";
 import useDeleteCollection from "../hooks/useDeleteCollection";
 import EditCollectionModal from "./EditCollectionModal";
 import { useQueryClient } from "@tanstack/react-query";
-import { getFaviconUrl } from "@/lib/utils";
+import { getFaviconUrl, resolveCollectionIcon } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useRouter } from "next/navigation";
 
@@ -36,7 +36,7 @@ function useIsHoverCapable() {
 
 export default function CollectionCard({ collection }: { collection: CollectionResponse }) {
   const color = collection.color || getFallbackColor(collection.name);
-  const iconName = (collection.icon as string) || "folder";
+  const iconName = resolveCollectionIcon(collection.icon);
   const preview = collection.previewLinks ?? [];
   const linkCount = collection.linkCount ?? preview.length;
   const remaining = Math.max(0, linkCount - preview.length);

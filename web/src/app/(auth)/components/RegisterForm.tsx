@@ -76,7 +76,7 @@ export default function LoginForm() {
                 leftIcon={<Text className="h-4 w-4" />}
                 error={fieldState.error?.message}
                 classNames={{
-                  label: "text-md text-white/90",
+                  label: "text-sm font-medium text-white/90",
                   field:
                     "h-[46px] rounded-full bg-white/[0.06] border-white/10",
                   input:
@@ -101,7 +101,7 @@ export default function LoginForm() {
                 leftIcon={<Mail className="h-4 w-4" />}
                 error={fieldState.error?.message}
                 classNames={{
-                  label: "text-md text-white/90",
+                  label: "text-sm font-medium text-white/90",
                   field:
                     "h-[46px] rounded-full bg-white/[0.06] border-white/10",
                   input:
@@ -154,7 +154,7 @@ export default function LoginForm() {
             )}
           />
           <StatefulButton
-            className="w-full bg-[#054a72] cursor-pointer hover:bg-[#054a7278] text-md font-bold"
+            className="w-full bg-[#054a72] cursor-pointer hover:bg-[#054a7278] text-base font-bold"
             state={isPending ? "loading" : "idle"}
             type="submit"
             loadingText="Signing up..."

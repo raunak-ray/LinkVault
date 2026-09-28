@@ -5,6 +5,7 @@ import useGetAllCollections from "@/app/dashboard/collections/hooks/useGetAllCol
 import { DynamicIcon } from "lucide-react/dynamic";
 import { Search, ChevronDown, Folder } from "lucide-motion";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { resolveCollectionIcon } from "@/lib/utils";
 
 export default function CollectionPicker({ value, onChange }: { value?: string; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false);
@@ -27,7 +28,7 @@ export default function CollectionPicker({ value, onChange }: { value?: string; 
                 {selected ? (
                   <>
                     <span className="flex size-6 items-center justify-center rounded-md border border-border" style={{ backgroundColor: `color-mix(in oklab, ${selected.color || "#6366F1"} 14%, transparent)` }}>
-                      <DynamicIcon name={(selected.icon as any) || "folder"} className="size-3.5" style={{ color: selected.color || "#6366F1" }} />
+                      <DynamicIcon name={resolveCollectionIcon(selected.icon) as any} className="size-3.5" style={{ color: selected.color || "#6366F1" }} />
                     </span>
                     <span className="truncate font-medium">{selected.name}</span>
                   </>
@@ -67,7 +68,7 @@ export default function CollectionPicker({ value, onChange }: { value?: string; 
                   className={`flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-accent text-left ${value === c.id ? "bg-accent" : ""}`}
                 >
                   <span className="flex size-7 items-center justify-center rounded-md border border-border" style={{ backgroundColor: `color-mix(in oklab, ${c.color || "#6366F1"} 14%, transparent)` }}>
-                    <DynamicIcon name={(c.icon as any) || "folder"} className="size-3.5" style={{ color: c.color || "#6366F1" }} />
+                    <DynamicIcon name={resolveCollectionIcon(c.icon) as any} className="size-3.5" style={{ color: c.color || "#6366F1" }} />
                   </span>
                   <span className="truncate font-medium">{c.name}</span>
                   <span className="ml-auto text-xs text-muted-foreground">{c.linkCount ?? 0}</span>

@@ -61,7 +61,7 @@ export default function CreateCollectionModal({
         className="bg-card border p-5 max-w-md md:max-w-lg flex flex-col gap-4 border-border"
       >
         <div className="flex flex-col items-start">
-          <h1 className="text-md md:text-lg font-semibold text-card-foreground">New collection</h1>
+          <h1 className="text-base md:text-lg font-semibold text-card-foreground">New collection</h1>
           <p className="text-sm text-muted-foreground">Group related links together.</p>
         </div>
 

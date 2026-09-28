@@ -14,6 +14,7 @@ import RecentLinkCard from "../../(dashboard)/components/RecentLinkCard";
 import EditCollectionModal from "./EditCollectionModal";
 import useDeleteCollection from "../hooks/useDeleteCollection";
 import { useQueryClient } from "@tanstack/react-query";
+import { resolveCollectionIcon } from "@/lib/utils";
 
 export default function CollectionDetailView({ id }: { id: string }) {
   const router = useRouter();
@@ -73,7 +74,7 @@ export default function CollectionDetailView({ id }: { id: string }) {
   }
 
   const color = collection.color || "#6366F1";
-  const iconName = (collection.icon as string) || "folder";
+  const iconName = resolveCollectionIcon(collection.icon);
 
   const handleDelete = () => {
     if (!confirm(`Delete collection "${collection.name}"? Links will remain but become unassigned? This cannot be undone.`)) return;
@@ -104,8 +105,8 @@ export default function CollectionDetailView({ id }: { id: string }) {
                 <DynamicIcon name={iconName as never} className="size-6" style={{ color }} />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xl md:text-2xl font-bold truncate">{collection.name}</h1>
-                <p className="text-sm text-muted-foreground mt-1">
+                <h1 className="truncate text-lg font-bold md:text-2xl">{collection.name}</h1>
+                <p className="text-xs text-muted-foreground mt-1 md:text-sm">
                   {collection.linkCount ?? links.length} {collection.linkCount === 1 ? "link" : "links"} · Updated{" "}
                   {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(
                     new Date(collection.updatedAt ?? collection.createdAt),

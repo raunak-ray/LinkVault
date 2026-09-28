@@ -45,7 +45,7 @@ export default function LinksView({
     <div className="mx-auto max-w-5xl flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{showOnlyFavourite ? "Favourite Links" : "All Links"}</h1>
+          <h1 className="text-xl font-semibold md:text-2xl">{showOnlyFavourite ? "Favourite Links" : "All Links"}</h1>
           <p className="mt-1 text-sm text-muted-foreground">{isLoading ? "Loading..." : `${links.length} links in your vault.`}</p>
         </div>
         {showAddButton && (

@@ -11,6 +11,7 @@ import { userApi } from "../api/user.api";
 import { getErrorMessage } from "@/lib/api/get-error-message";
 import { useToast } from "@/lib/toast/toast-provider";
 import { useLogout } from "@/lib/auth/use-logout";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 type Tab = "profile" | "appearance" | "account";
 
@@ -50,16 +51,16 @@ export default function SettingsView() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <h1 className="text-2xl font-semibold">Settings</h1>
+      <h1 className="text-xl font-semibold md:text-2xl">Settings</h1>
       <p className="mt-1 text-sm text-muted-foreground">Manage your vault and how it looks.</p>
 
       {/* Tabs - beui style */}
-      <div className="mt-6 flex gap-1 rounded-lg bg-muted p-1 w-fit">
+      <div className="mt-6 flex w-full gap-1 overflow-x-auto rounded-lg bg-muted p-1 sm:w-fit">
         {(["profile", "appearance", "account"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`rounded-md px-4 py-1.5 text-sm font-medium capitalize transition-colors ${tab === t ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium capitalize transition-colors sm:flex-none sm:px-4 ${tab === t ? "bg-background shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
           >
             {t}
           </button>
@@ -67,9 +68,9 @@ export default function SettingsView() {
       </div>
 
       {tab === "profile" && (
-        <div className="surface-panel max-w-xl space-y-5 rounded-xl p-5 mt-6">
+        <div className="surface-panel max-w-xl space-y-5 rounded-xl p-4 mt-6 sm:p-5">
           <div className="flex items-center gap-4">
-            <div className="flex size-14 items-center justify-center rounded-full bg-secondary text-lg font-medium">
+            <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-secondary text-lg font-medium">
               {(user?.name || "U").slice(0, 2).toUpperCase()}
             </div>
             <Button variant="outline" size="sm" disabled>
@@ -99,10 +100,10 @@ export default function SettingsView() {
       )}
 
       {tab === "appearance" && (
-        <div className="surface-panel max-w-xl rounded-xl p-5 mt-6">
+        <div className="surface-panel max-w-xl rounded-xl p-4 mt-6 sm:p-5">
           <h2 className="text-sm font-semibold">Theme</h2>
           <p className="mt-1 text-sm text-muted-foreground">Choose how Link Vault looks on this device.</p>
-          <div className="mt-4 grid grid-cols-3 gap-3">
+          <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
             {themes.map((t) => {
               const Icon = t.icon;
               const active = theme === t.value;
@@ -111,7 +112,7 @@ export default function SettingsView() {
                   key={t.value}
                   type="button"
                   onClick={() => setTheme(t.value)}
-                  className={`flex flex-col items-center gap-2 rounded-lg border p-4 text-sm transition-colors hover:bg-accent ${active ? "border-primary bg-accent text-accent-foreground" : "border-border"}`}
+                  className={`flex flex-col items-center gap-2 rounded-lg border p-3 text-xs transition-colors hover:bg-accent sm:p-4 sm:text-sm ${active ? "border-primary bg-accent text-accent-foreground" : "border-border"}`}
                 >
                   <Icon className="size-5" />
                   {t.label}
@@ -124,42 +125,35 @@ export default function SettingsView() {
 
       {tab === "account" && (
         <div className="mt-6 space-y-4 max-w-xl">
-          <div className="surface-panel space-y-3 rounded-xl p-5 text-sm">
+          <div className="surface-panel space-y-3 rounded-xl p-4 text-sm sm:p-5">
             <h2 className="text-sm font-semibold">Account information</h2>
-            <div className="flex justify-between border-t border-border pt-3">
+            <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 border-t border-border pt-3">
               <span className="text-muted-foreground">Email</span>
-              <span className="font-medium">{user?.email}</span>
+              <span className="font-medium break-all">{user?.email}</span>
             </div>
-            <div className="flex justify-between border-t border-border pt-3">
+            <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 border-t border-border pt-3">
               <span className="text-muted-foreground">Account created</span>
               <span>{user?.createdAt ? new Date(user.createdAt as any).toLocaleDateString() : "—"}</span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-5">
+          <div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 sm:p-5">
             <h2 className="text-sm font-semibold text-destructive">Danger zone</h2>
             <p className="mt-1 text-sm text-muted-foreground">Deleting your account removes every link and collection in your vault.</p>
-            <Button variant="outline" size="sm" className="mt-4 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => setDeleteOpen(true)}>
+            <Button variant="outline" size="sm" className="mt-4 w-full border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground sm:w-auto" onClick={() => setDeleteOpen(true)}>
               Delete Account
             </Button>
           </div>
-
-          {deleteOpen && (
-            <div className="surface-panel rounded-xl p-5">
-              <h3 className="font-semibold">Delete your account?</h3>
-              <p className="mt-1 text-sm text-muted-foreground">This action cannot be undone. All of your links and collections will be permanently removed.</p>
-              <div className="mt-4 flex gap-2 justify-end">
-                <Button variant="outline" size="sm" onClick={() => setDeleteOpen(false)}>
-                  Cancel
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => deleteMut.mutate()} disabled={deleteMut.isPending} className="border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground">
-                  {deleteMut.isPending ? "Deleting..." : "Delete Account"}
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       )}
+
+      <DeleteAccountModal
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={() => deleteMut.mutate()}
+        isPending={deleteMut.isPending}
+        email={user?.email}
+      />
     </div>
   );
 }

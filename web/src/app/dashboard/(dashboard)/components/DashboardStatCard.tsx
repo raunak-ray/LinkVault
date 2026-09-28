@@ -18,7 +18,7 @@ export default function DashboardStatsCard({
           {title || "Title"}
         </CardTitle>
       </CardHeader>
-      <CardContent className="text-2xl font-semibold">{value || 0}</CardContent>
+      <CardContent className="text-xl font-semibold sm:text-2xl">{value || 0}</CardContent>
     </Card>
   );
 }

@@ -76,8 +76,11 @@ export function DockItem({
     />
   ) : null;
   const sharedStyle = { width: size, height: size };
+  // `bg-transparent` lives in the base layer, before the caller's `className`,
+  // so an item that asks for its own background (e.g. the mobile "+" button)
+  // wins instead of being flattened by tailwind-merge.
   const sharedClass = cn(
-    "relative flex shrink-0 items-center justify-center rounded-full text-foreground",
+    "relative flex shrink-0 items-center justify-center rounded-full bg-transparent text-foreground",
     className,
   );
 
@@ -91,7 +94,7 @@ export function DockItem({
         style={sharedStyle}
         className={cn(
           sharedClass,
-          "cursor-pointer border-0 bg-transparent p-0 outline-none",
+          "cursor-pointer border-0 p-0 outline-none",
           "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         )}
       >

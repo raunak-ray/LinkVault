@@ -53,7 +53,7 @@ export default function EditLinkModal({
     <CenterMorphModal open={open} onOpenChange={onOpenChange}>
       <CenterMorphModalContent ariaLabel="Edit link" className="bg-card border p-5 max-w-md md:max-w-xl flex flex-col gap-4 border-border">
         <div className="flex flex-col items-start">
-          <h1 className="text-md md:text-lg font-semibold">Edit link</h1>
+          <h1 className="text-base md:text-lg font-semibold">Edit link</h1>
           <p className="text-sm text-muted-foreground">Update URL, title or move to another collection.</p>
         </div>
         <form className="space-y-4" onSubmit={onSubmit}>
