@@ -49,7 +49,7 @@ export default function CreateLinkModal({
         className="bg-card border p-5 max-w-md md:max-w-xl flex flex-col gap-4 border-border"
       >
         <div className="flex flex-col items-start">
-          <h1 className="text-md md:text-lg font-semibold">Save a link</h1>
+          <h1 className="text-base md:text-lg font-semibold">Save a link</h1>
           <p className="text-sm text-muted-foreground">Paste a URL — the rest fills itself in.</p>
         </div>
         <form className="space-y-4" onSubmit={onSubmit}>

@@ -49,8 +49,8 @@ export default function DashboardPage() {
   return (
     <main className="mx-auto max-w-5xl flex flex-col gap-6">
       <div className="space-y-1">
-        <h2 className="text-xl md:text-2xl font-semibold">
-          {greet}, <span>{user?.name}</span>
+        <h2 className="text-lg font-semibold md:text-2xl">
+          {greet}, <span className="break-words">{user?.name}</span>
         </h2>
         <p className="text-sm text-muted-foreground">Here&apos;s what&apos;s in your vault.</p>
       </div>

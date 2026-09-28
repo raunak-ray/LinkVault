@@ -156,6 +156,9 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Long URLs, emails and collection names must never force a horizontal
+       scrollbar on narrow phones. */
+    overflow-wrap: break-word;
   }
 }
 

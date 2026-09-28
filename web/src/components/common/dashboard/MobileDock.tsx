@@ -8,6 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Blocks, Bookmark, House, Plus, Star } from "lucide-react";
 import { Dock, DockItem } from "@/components/motion/dock";
 import CreateLinkModal from "@/app/dashboard/links/components/CreateLinkModal";
+import { LayoutGrid } from "lucide-motion";
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: House, href: "/dashboard" },
@@ -21,7 +22,7 @@ const NAV = [
   {
     id: "collections",
     label: "Collections",
-    icon: Blocks,
+    icon: LayoutGrid,
     href: "/dashboard/collections",
   },
 ] as const;
@@ -57,9 +58,9 @@ export default function MobileDock() {
           <DockItem
             aria-label="Add link"
             onClick={() => setAddOpen(true)}
-            className="bg-primary text-primary-foreground"
+            className="bg-primary text-primary-foreground shadow-[var(--shadow-lift)] ring-1 ring-primary/30 hover:bg-primary/90"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-5 w-5" strokeWidth={2.5} />
           </DockItem>
 
           {NAV.slice(2).map(({ id, icon: Icon, label, href }) => (

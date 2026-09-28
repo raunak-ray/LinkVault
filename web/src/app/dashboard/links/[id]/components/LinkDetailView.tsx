@@ -61,8 +61,8 @@ export default function LinkDetailView({ id }: { id: string }) {
                 <img src={favicon} alt="" className="size-6 object-contain" />
               </div>
               <div className="min-w-0 flex-1">
-                <h1 className="truncate text-lg font-semibold text-white drop-shadow md:text-xl">{link.title || "Untitled"}</h1>
-                <p className="truncate text-sm text-white/80">{new URL(link.url).hostname}</p>
+                <h1 className="truncate text-base font-semibold text-white drop-shadow md:text-xl">{link.title || "Untitled"}</h1>
+                <p className="truncate text-xs text-white/80 md:text-sm">{new URL(link.url).hostname}</p>
               </div>
             </div>
           </div>
@@ -73,9 +73,9 @@ export default function LinkDetailView({ id }: { id: string }) {
         <div className="p-5 md:p-6 space-y-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl font-bold leading-tight md:text-2xl">{link.title || link.url}</h1>
-              <a href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline mt-1">
-                {link.url} <ExternalLink className="size-3.5" />
+              <h1 className="text-lg font-bold leading-tight break-words md:text-2xl">{link.title || link.url}</h1>
+              <a href={link.url} target="_blank" rel="noopener noreferrer" className="inline-flex max-w-full items-center gap-1.5 text-sm text-primary hover:underline mt-1">
+                <span className="truncate">{link.url}</span> <ExternalLink className="size-3.5 shrink-0" />
               </a>
               {link.metadata.description && <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{link.metadata.description}</p>}
             </div>

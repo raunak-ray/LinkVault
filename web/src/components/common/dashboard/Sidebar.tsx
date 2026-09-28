@@ -20,6 +20,7 @@ import {
   Star,
   Moon,
   Sun,
+  LayoutGrid,
 } from "lucide-motion";
 import { Bookmark } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
@@ -49,7 +50,7 @@ const content = [
   {
     id: "collections",
     label: "Collections",
-    icon: Blocks,
+    icon: LayoutGrid,
     href: "/dashboard/collections",
   },
 ];

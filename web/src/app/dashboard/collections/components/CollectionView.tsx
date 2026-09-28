@@ -53,7 +53,7 @@ export default function CollectionView() {
       {/* Header - matches lovable */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Collections</h1>
+          <h1 className="text-xl font-semibold text-foreground md:text-2xl">Collections</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Keep related links together so they&apos;re easy to find later.
           </p>
