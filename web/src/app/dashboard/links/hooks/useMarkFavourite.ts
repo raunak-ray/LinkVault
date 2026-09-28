@@ -3,6 +3,8 @@ import { linkApi } from "../api/link.api";
 import type { LinkResponse } from "../../(dashboard)/types";
 import type { ApiSuccessResponse, PaginationResponse } from "@/types";
 import type { DashboardResponse } from "../../(dashboard)/types";
+import { getErrorMessage } from "@/lib/api/get-error-message";
+import { useToast } from "@/lib/toast/toast-provider";
 
 /** Helper to update a link's isFavourite in a PaginationResponse page */
 function updateLinkInPage(page: PaginationResponse<LinkResponse>, id: string, isFavourite: boolean): PaginationResponse<LinkResponse> {
@@ -27,6 +29,7 @@ function updateInfiniteQueryCache(
 
 export default function useMarkFavourite() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   return useMutation({
     mutationFn: ({ id, isFavourite }: { id: string; isFavourite: boolean }) =>
@@ -106,6 +109,7 @@ export default function useMarkFavourite() {
       if (context?.previousLink) {
         queryClient.setQueryData(["link", id], context.previousLink);
       }
+      toast.error("Couldn't update favourite", getErrorMessage(_err));
     },
 
     onSuccess: (response) => {

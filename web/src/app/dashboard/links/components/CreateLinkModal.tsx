@@ -28,7 +28,7 @@ export default function CreateLinkModal({
     },
   });
 
-  const { mutate: create } = useCreateLink();
+  const { mutate: create, isPending } = useCreateLink();
 
   const onSubmit = handleSubmit((data) => {
     create(data, {
@@ -102,8 +102,8 @@ export default function CreateLinkModal({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" variant="primary" className="min-w-24">
-              Save Link
+            <Button type="submit" variant="primary" disabled={isPending} className="min-w-24">
+              {isPending ? "Saving..." : "Save Link"}
             </Button>
           </div>
         </form>

@@ -10,6 +10,7 @@ import ThemeToggle from "@/components/common/ThemeToggle";
 import GlobalSearch from "@/components/common/header/GlobalSearch";
 import UserMenu from "@/components/common/header/UserMenu";
 import HeaderAddLink from "@/components/common/header/HeaderAddLink";
+import MobileDock from "@/components/common/dashboard/MobileDock";
 export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -39,6 +40,9 @@ export default function DashboardLayout({
               {/* Content */}
               <div className="min-w-0 flex-1 px-4 pb-28 pt-6 md:px-8 md:pb-16">{children}</div>
             </main>
+
+            {/* Floating macOS-style dock for small screens */}
+            <MobileDock />
           </div>
         </AnimatedSidebarProvider>
       </RequireAuth>

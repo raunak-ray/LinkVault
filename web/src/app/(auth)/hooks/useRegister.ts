@@ -5,6 +5,8 @@ import { AxiosError } from "axios";
 import type { RegisterPayload } from "../types";
 import { authApi } from "../api/auth.api";
 import { setAccessToken } from "@/lib/api/client";
+import { getErrorMessage } from "@/lib/api/get-error-message";
+import { useToast } from "@/lib/toast/toast-provider";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function useRegister() {
@@ -12,6 +14,7 @@ export default function useRegister() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
 
   return useMutation<
     ApiSuccessResponse<AuthUser>,
@@ -25,6 +28,10 @@ export default function useRegister() {
       setAccessToken(accessToken);
 
       queryClient.setQueryData(queryKey, user);
+      toast.success(
+        "Account created",
+        `Welcome to Link Vault${user.name ? `, ${user.name.split(" ")[0]}` : ""}.`,
+      );
       const next = searchParams.get("next");
       const target =
         next && next.startsWith("/") && !next.startsWith("//")
@@ -32,6 +39,9 @@ export default function useRegister() {
           : "/dashboard";
       router.push(target);
       router.refresh();
+    },
+    onError: (error) => {
+      toast.error("Registration failed", getErrorMessage(error));
     },
   });
 }

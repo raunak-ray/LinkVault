@@ -10,6 +10,8 @@ import { useRouter } from "next/navigation";
 import EditLinkModal from "../../links/components/EditLinkModal";
 import { getFaviconUrl } from "@/lib/utils";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { useToast } from "@/lib/toast/toast-provider";
+import { getErrorMessage } from "@/lib/api/get-error-message";
 
 export default function RecentLinkCard({ link }: { link: LinkResponse }) {
   const date = new Intl.DateTimeFormat("en-GB", {
@@ -24,6 +26,7 @@ export default function RecentLinkCard({ link }: { link: LinkResponse }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const handleDelete = () => {
     if (!confirm(`Delete "${link.title || link.url}"?`)) return;
@@ -31,7 +34,12 @@ export default function RecentLinkCard({ link }: { link: LinkResponse }) {
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(link.url);
+    try {
+      await navigator.clipboard.writeText(link.url);
+      toast.success("Link copied", "URL is on your clipboard.");
+    } catch (e) {
+      toast.error("Couldn't copy link", getErrorMessage(e));
+    }
     setMenuOpen(false);
   };
 

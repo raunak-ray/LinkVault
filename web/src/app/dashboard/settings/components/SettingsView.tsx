@@ -9,6 +9,7 @@ import { Monitor, Moon, Sun } from "lucide-motion";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { userApi } from "../api/user.api";
 import { getErrorMessage } from "@/lib/api/get-error-message";
+import { useToast } from "@/lib/toast/toast-provider";
 import { useLogout } from "@/lib/auth/use-logout";
 
 type Tab = "profile" | "appearance" | "account";
@@ -21,23 +22,24 @@ export default function SettingsView() {
   const queryClient = useQueryClient();
   const { mutate: logout } = useLogout();
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const updateMut = useMutation({
     mutationFn: () => userApi.updateMe({ name: name.trim() }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["auth", "me"] });
-      setFeedback("Profile updated");
-      setTimeout(() => setFeedback(null), 2000);
+      toast.success("Profile updated", "Your name was saved.");
     },
-    onError: (e) => setFeedback(getErrorMessage(e)),
+    onError: (e) => toast.error("Couldn't save profile", getErrorMessage(e)),
   });
 
   const deleteMut = useMutation({
     mutationFn: () => userApi.deleteMe(),
     onSuccess: async () => {
+      toast.success("Account deleted", "Your vault was removed.");
       await logout();
     },
+    onError: (e) => toast.error("Couldn't delete account", getErrorMessage(e)),
   });
 
   const themes: { value: typeof theme; label: string; icon: any }[] = [
@@ -89,8 +91,6 @@ export default function SettingsView() {
             <Input id="p-email" value={user?.email ?? ""} readOnly className="h-9 bg-muted" />
             <p className="text-xs text-muted-foreground">Email addresses can&apos;t be changed yet.</p>
           </div>
-
-          {feedback && <p className="text-sm text-primary">{feedback}</p>}
 
           <Button onClick={() => updateMut.mutate()} disabled={updateMut.isPending || !name.trim()}>
             {updateMut.isPending ? "Saving..." : "Save Changes"}
