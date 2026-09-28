@@ -4,6 +4,8 @@ import "./globals.css";
 import QueryProvider from "@/components/provider/QueryProvider";
 import { AuthProvider } from "@/lib/auth/auth-provider";
 import ThemeProvider from "@/components/provider/ThemeProvider";
+import { ToastProvider } from "@/lib/toast/toast-provider";
+import OfflineBanner from "@/components/common/OfflineBanner";
 
 export const runtime = "nodejs";
 
@@ -39,7 +41,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground">
         <ThemeProvider>
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              <ToastProvider>
+                <OfflineBanner />
+                {children}
+              </ToastProvider>
+            </AuthProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>

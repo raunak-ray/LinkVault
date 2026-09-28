@@ -221,25 +221,45 @@ export class AuthService {
     return { accessToken, refreshExpiry };
   }
 
+  private isCrossSiteProd() {
+    // Frontend (Vercel) and backend (Render) are different sites in production,
+    // so the refresh cookie must be `SameSite=None; Secure` to be sent cross-site.
+    return process.env.NODE_ENV === 'production';
+  }
+
+  private cookieBase() {
+    if (this.isCrossSiteProd()) {
+      return {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none' as const,
+        path: '/',
+      };
+    }
+    return {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+  }
+
   private storeRefreshToken(token: string, res: Response, expiresAt: Date) {
     res.cookie('refreshToken', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
+      ...this.cookieBase(),
       maxAge: expiresAt.getTime() - Date.now(),
     });
   }
 
   private clearRefreshToken(res: Response) {
-    // Clear both '/' and legacy '/auth' paths to purge stale cookies from previous builds
-    const opts = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax' as const,
-      path: '/',
-    };
-    res.clearCookie('refreshToken', opts);
-    res.clearCookie('refreshToken', { ...opts, path: '/auth' });
+    // Clear with the current env's attributes first (attributes must match
+    // for the browser to actually delete the cookie), then purge legacy
+    // variants from previous builds (lax + '/auth' path).
+    const current = this.cookieBase();
+    res.clearCookie('refreshToken', current);
+    res.clearCookie('refreshToken', { ...current, path: '/auth' });
+    const legacy = { httpOnly: true, secure: false, sameSite: 'lax' as const };
+    res.clearCookie('refreshToken', { ...legacy, path: '/' });
+    res.clearCookie('refreshToken', { ...legacy, path: '/auth' });
   }
 }
