@@ -274,7 +274,12 @@ export function SelectValue({ placeholder, className }: SelectValueProps) {
   const ctx = useSelectContext("SelectValue");
   const label = ctx.labelFor(ctx.value);
   return (
-    <span className={cn(label ? "text-foreground" : "text-muted-foreground", className)}>
+    <span
+      className={cn(
+        label ? "text-foreground" : "text-muted-foreground",
+        className,
+      )}
+    >
       {label ?? placeholder ?? "Select"}
     </span>
   );
@@ -433,7 +438,9 @@ export function SelectItem({
         onClick={() => ctx.select(value)}
         className={cn(
           "flex w-full items-center justify-between gap-2 rounded-md px-2.5 py-2 text-left text-sm outline-none transition-colors",
-          selected ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground",
+          selected
+            ? "bg-accent text-accent-foreground"
+            : "text-muted-foreground hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground",
           "disabled:pointer-events-none disabled:opacity-50",
           className,
         )}

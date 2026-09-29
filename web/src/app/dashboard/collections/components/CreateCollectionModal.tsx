@@ -1,20 +1,29 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Folder, Palette } from "lucide-motion";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import IconPicker from "@/components/common/IconPicker";
+import { Button } from "@/components/motion/button/base";
 import {
   CenterMorphModal,
   CenterMorphModalContent,
 } from "@/components/motion/center-morph-modal";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import { CreateCollectionSchema } from "../schema/create-collection.schema";
-import useCreateCollection from "../hooks/useCreateCollection";
 import { Input } from "@/components/motion/input";
-import { Button } from "@/components/motion/button/base";
-import { useEffect } from "react";
-import { Folder, Palette } from "lucide-motion";
-import IconPicker from "@/components/common/IconPicker";
+import useCreateCollection from "../hooks/useCreateCollection";
+import { CreateCollectionSchema } from "../schema/create-collection.schema";
 
-const PRESET_COLORS = ["#6366F1", "#14b8a6", "#22c55e", "#f59e0b", "#f97316", "#ec4899", "#06b6d4", "#8b5cf6"];
+const PRESET_COLORS = [
+  "#6366F1",
+  "#14b8a6",
+  "#22c55e",
+  "#f59e0b",
+  "#f97316",
+  "#ec4899",
+  "#06b6d4",
+  "#8b5cf6",
+];
 
 export default function CreateCollectionModal({
   open,
@@ -61,8 +70,12 @@ export default function CreateCollectionModal({
         className="bg-card border p-5 max-w-md md:max-w-lg flex flex-col gap-4 border-border"
       >
         <div className="flex flex-col items-start">
-          <h1 className="text-base md:text-lg font-semibold text-card-foreground">New collection</h1>
-          <p className="text-sm text-muted-foreground">Group related links together.</p>
+          <h1 className="text-base md:text-lg font-semibold text-card-foreground">
+            New collection
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Group related links together.
+          </p>
         </div>
 
         <form className="space-y-4" onSubmit={onSubmit}>
@@ -115,7 +128,9 @@ export default function CreateCollectionModal({
                     <button
                       key={c}
                       type="button"
-                      onClick={() => setValue("color", c, { shouldDirty: true })}
+                      onClick={() =>
+                        setValue("color", c, { shouldDirty: true })
+                      }
                       className={`size-7 rounded-full border-2 transition-all ${selectedColor === c ? "border-foreground scale-110" : "border-border hover:border-foreground/40"}`}
                       style={{ backgroundColor: c }}
                       aria-label={`Pick color ${c}`}
@@ -127,10 +142,19 @@ export default function CreateCollectionModal({
           />
 
           <div className="flex gap-2 items-center justify-end pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="primary" disabled={isPending} className="min-w-24">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isPending}
+              className="min-w-24"
+            >
               {isPending ? "Creating..." : "Create"}
             </Button>
           </div>

@@ -1,7 +1,7 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-provider";
 
 export default function RequireAuth({

@@ -11,7 +11,11 @@ export class SearchController {
 
   @Get()
   @ResponseMessage('Search results')
-  async search(@CurrentUser('sub') sub: string, @Query('q') q: string, @Query('limit') limit?: string) {
+  async search(
+    @CurrentUser('sub') sub: string,
+    @Query('q') q: string,
+    @Query('limit') limit?: string,
+  ) {
     const lim = limit ? Math.min(parseInt(limit, 10) || 6, 10) : 6;
     return this.searchService.globalSearch(sub, q ?? '', lim);
   }

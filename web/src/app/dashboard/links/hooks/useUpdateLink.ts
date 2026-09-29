@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { linkApi } from "../api/link.api";
-import { UpdateLinkPayload } from "../types";
 import { getErrorMessage } from "@/lib/api/get-error-message";
 import { useToast } from "@/lib/toast/toast-provider";
+import { linkApi } from "../api/link.api";
+import type { UpdateLinkPayload } from "../types";
 
 export default function useUpdateLink() {
   const queryClient = useQueryClient();

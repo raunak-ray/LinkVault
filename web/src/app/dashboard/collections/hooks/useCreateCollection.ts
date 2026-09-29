@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { collectionApi } from "../api/collection.api";
-import { CreateCollectionPayload } from "../types";
 import { getErrorMessage } from "@/lib/api/get-error-message";
 import { useToast } from "@/lib/toast/toast-provider";
+import { collectionApi } from "../api/collection.api";
+import type { CreateCollectionPayload } from "../types";
 
 export default function useCreateCollection() {
   const queryClient = useQueryClient();

@@ -3,12 +3,11 @@
 // Floating macOS-style navigation dock (beui dock) for small screens.
 // Desktop keeps the full sidebar; this dock is mobile-only (md:hidden).
 
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { Blocks, Bookmark, House, Plus, Star } from "lucide-react";
-import { Dock, DockItem } from "@/components/motion/dock";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import CreateLinkModal from "@/app/dashboard/links/components/CreateLinkModal";
-import { LayoutGrid } from "lucide-motion";
+import { Dock, DockItem } from "@/components/motion/dock";
 
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: House, href: "/dashboard" },
@@ -22,7 +21,7 @@ const NAV = [
   {
     id: "collections",
     label: "Collections",
-    icon: LayoutGrid,
+    icon: Blocks,
     href: "/dashboard/collections",
   },
 ] as const;

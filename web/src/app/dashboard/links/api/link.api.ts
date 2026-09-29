@@ -1,7 +1,7 @@
 import api from "@/lib/api/client";
-import { CreateLinkPayload, UpdateLinkPayload } from "../types";
-import { ApiSuccessResponse, PaginationResponse } from "@/types";
-import { LinkResponse } from "../../(dashboard)/types";
+import type { ApiSuccessResponse, PaginationResponse } from "@/types";
+import type { LinkResponse } from "../../(dashboard)/types";
+import type { CreateLinkPayload, UpdateLinkPayload } from "../types";
 
 export const linkApi = {
   create: async (data: CreateLinkPayload) => {

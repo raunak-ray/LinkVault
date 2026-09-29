@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Bookmark } from "lucide-react";
+import Link from "next/link";
 
 /** Small LinkVault brand row used above the error / 404 stages. */
 export default function ErrorBrand({ href = "/" }: { href?: string }) {

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { linkApi } from "../api/link.api";
 import { getErrorMessage } from "@/lib/api/get-error-message";
 import { useToast } from "@/lib/toast/toast-provider";
+import { linkApi } from "../api/link.api";
 
 export default function useDeleteLink() {
   const queryClient = useQueryClient();
@@ -16,6 +16,7 @@ export default function useDeleteLink() {
       });
       queryClient.invalidateQueries({ queryKey: ["links"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["search"] });
       toast.success("Link deleted", "It was removed from your vault.");
     },
     onError: (error) => {

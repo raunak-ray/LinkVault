@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -16,11 +23,14 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 function getSystemTheme(): "light" | "dark" {
   if (typeof window === "undefined") return "dark";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 function apply(theme: Theme) {
-  const resolved: "light" | "dark" = theme === "system" ? getSystemTheme() : theme;
+  const resolved: "light" | "dark" =
+    theme === "system" ? getSystemTheme() : theme;
   document.documentElement.classList.toggle("dark", resolved === "dark");
   return resolved;
 }
@@ -31,13 +41,18 @@ export function useTheme() {
   return ctx;
 }
 
-export default function ThemeProvider({ children }: { children: React.ReactNode }) {
+export default function ThemeProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolved, setResolved] = useState<"light" | "dark">("dark");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const stored = (localStorage.getItem("linkvault-theme") as Theme | null) ?? "system";
+    const stored =
+      (localStorage.getItem("linkvault-theme") as Theme | null) ?? "system";
     setThemeState(stored);
     setResolved(apply(stored));
     setMounted(true);
@@ -56,9 +71,9 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     setResolved(apply(t));
   }, []);
 
+  // The header/sidebar toggle only flips between light and dark; "system"
+  // resolves to its opposite first so the click always has a visible effect.
   const toggle = useCallback(() => {
-    const next: Theme = theme === "dark" ? "light" : theme === "light" ? "system" : "dark";
-    // simple toggle cycles dark->light->system ; but header icon toggles dark/light
     if (theme === "system") {
       const sys = getSystemTheme();
       setTheme(sys === "dark" ? "light" : "dark");
@@ -67,7 +82,12 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
     }
   }, [theme, setTheme]);
 
-  const value = useMemo(() => ({ theme, resolved, toggle, setTheme, mounted }), [theme, resolved, toggle, setTheme, mounted]);
+  const value = useMemo(
+    () => ({ theme, resolved, toggle, setTheme, mounted }),
+    [theme, resolved, toggle, setTheme, mounted],
+  );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }

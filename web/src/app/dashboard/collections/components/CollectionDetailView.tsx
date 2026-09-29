@@ -1,20 +1,21 @@
 "use client";
 
-import useGetCollectionById from "../hooks/useGetCollectionById";
-import useGetAllLinks from "../../links/hooks/useGetAllLinks";
-import { Button } from "@/components/motion/button/base";
-import { Card } from "@/components/ui/card";
-import { ArrowLeft, Pencil, Trash2, Link2, Search } from "lucide-motion";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Link2, Pencil, Search, Trash2 } from "lucide-motion";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import useDebounce from "@/lib/hooks/useDebounce";
+import { Button } from "@/components/motion/button/base";
 import { Input } from "@/components/motion/input";
-import RecentLinkCard from "../../(dashboard)/components/RecentLinkCard";
-import EditCollectionModal from "./EditCollectionModal";
-import useDeleteCollection from "../hooks/useDeleteCollection";
-import { useQueryClient } from "@tanstack/react-query";
+import { Card } from "@/components/ui/card";
+import useDebounce from "@/lib/hooks/useDebounce";
 import { resolveCollectionIcon } from "@/lib/utils";
+import RecentLinkCard from "../../(dashboard)/components/RecentLinkCard";
+import useGetAllLinks from "../../links/hooks/useGetAllLinks";
+import useDeleteCollection from "../hooks/useDeleteCollection";
+import useGetCollectionById from "../hooks/useGetCollectionById";
+import DeleteCollectionModal from "./DeleteCollectionModal";
+import EditCollectionModal from "./EditCollectionModal";
 
 export default function CollectionDetailView({ id }: { id: string }) {
   const router = useRouter();
@@ -25,7 +26,9 @@ export default function CollectionDetailView({ id }: { id: string }) {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search);
   const [editOpen, setEditOpen] = useState(false);
-  const { mutate: deleteCollection, isPending: isDeleting } = useDeleteCollection();
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const { mutate: deleteCollection, isPending: isDeleting } =
+    useDeleteCollection();
 
   const {
     data: linksData,
@@ -48,8 +51,8 @@ export default function CollectionDetailView({ id }: { id: string }) {
         <div className="h-32 surface-panel rounded-xl" />
         <div className="h-10 bg-primary/5 rounded-lg w-full" />
         <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-28 surface-panel rounded-xl" />
+          {["a", "b", "c"].map((k) => (
+            <div key={k} className="h-28 surface-panel rounded-xl" />
           ))}
         </div>
       </div>
@@ -64,8 +67,14 @@ export default function CollectionDetailView({ id }: { id: string }) {
         </Button>
         <Card className="surface-panel p-8 text-center">
           <p className="font-medium">Collection not found</p>
-          <p className="text-muted-foreground text-sm mt-1">It may have been deleted.</p>
-          <Button variant="outline" onClick={() => router.push("/dashboard/collections")} className="mt-4">
+          <p className="text-muted-foreground text-sm mt-1">
+            It may have been deleted.
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/dashboard/collections")}
+            className="mt-4"
+          >
             Go to collections
           </Button>
         </Card>
@@ -75,12 +84,14 @@ export default function CollectionDetailView({ id }: { id: string }) {
 
   const color = collection.color || "#6366F1";
   const iconName = resolveCollectionIcon(collection.icon);
+  const linkCount = collection.linkCount ?? links.length;
 
   const handleDelete = () => {
-    if (!confirm(`Delete collection "${collection.name}"? Links will remain but become unassigned? This cannot be undone.`)) return;
     deleteCollection(collection.id, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["collections"] });
+        queryClient.invalidateQueries({ queryKey: ["links"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard"] });
         router.push("/dashboard/collections");
       },
     });
@@ -88,27 +99,47 @@ export default function CollectionDetailView({ id }: { id: string }) {
 
   return (
     <div className="mx-auto max-w-5xl flex flex-col gap-6">
-      <Button variant="ghost" onClick={() => router.back()} className="w-fit -ml-2">
+      <Button
+        variant="ghost"
+        onClick={() => router.back()}
+        className="w-fit -ml-2"
+      >
         <ArrowLeft className="size-4" /> Back to collections
       </Button>
 
       {/* Collection header card - inspired by lovable but keep vault taste */}
       <Card className="relative overflow-hidden surface-panel">
-        <div className="h-1 w-full top-0 absolute rounded-2xl" style={{ backgroundColor: color }} />
+        <div
+          className="h-1 w-full top-0 absolute rounded-2xl"
+          style={{ backgroundColor: color }}
+        />
         <div className="p-5 md:p-6 flex flex-col gap-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex gap-4 items-start min-w-0">
               <div
                 className="size-12 rounded-2xl border border-border flex items-center justify-center shrink-0"
-                style={{ backgroundColor: `color-mix(in oklab, ${color} 14%, transparent)`, borderColor: `color-mix(in oklab, ${color} 25%, var(--border))` }}
+                style={{
+                  backgroundColor: `color-mix(in oklab, ${color} 14%, transparent)`,
+                  borderColor: `color-mix(in oklab, ${color} 25%, var(--border))`,
+                }}
               >
-                <DynamicIcon name={iconName as never} className="size-6" style={{ color }} />
+                <DynamicIcon
+                  name={iconName as never}
+                  className="size-6"
+                  style={{ color }}
+                />
               </div>
               <div className="min-w-0">
-                <h1 className="truncate text-lg font-bold md:text-2xl">{collection.name}</h1>
+                <h1 className="truncate text-lg font-bold md:text-2xl">
+                  {collection.name}
+                </h1>
                 <p className="text-xs text-muted-foreground mt-1 md:text-sm">
-                  {collection.linkCount ?? links.length} {collection.linkCount === 1 ? "link" : "links"} · Updated{" "}
-                  {new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(
+                  {linkCount} {linkCount === 1 ? "link" : "links"} · Updated{" "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  }).format(
                     new Date(collection.updatedAt ?? collection.createdAt),
                   )}
                 </p>
@@ -116,17 +147,23 @@ export default function CollectionDetailView({ id }: { id: string }) {
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditOpen(true)}
+                className="gap-1.5"
+              >
                 <Pencil className="size-3.5" /> Edit
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleDelete}
+                onClick={() => setDeleteOpen(true)}
                 disabled={isDeleting}
                 className="gap-1.5 text-destructive border-destructive/20 hover:bg-destructive/10"
               >
-                <Trash2 className="size-3.5" /> {isDeleting ? "Deleting..." : "Delete"}
+                <Trash2 className="size-3.5" />
+                {isDeleting ? "Deleting..." : "Delete"}
               </Button>
             </div>
           </div>
@@ -150,8 +187,11 @@ export default function CollectionDetailView({ id }: { id: string }) {
       {/* Links list */}
       {linksLoading ? (
         <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-28 surface-panel rounded-xl animate-pulse" />
+          {["a", "b", "c"].map((k) => (
+            <div
+              key={k}
+              className="h-28 surface-panel rounded-xl animate-pulse"
+            />
           ))}
         </div>
       ) : links.length === 0 ? (
@@ -161,7 +201,9 @@ export default function CollectionDetailView({ id }: { id: string }) {
           </div>
           <p className="font-medium">No links in this collection</p>
           <p className="text-muted-foreground text-sm text-center">
-            {debouncedSearch ? `No results for "${debouncedSearch}"` : "Add links and assign them to this collection."}
+            {debouncedSearch
+              ? `No results for "${debouncedSearch}"`
+              : "Add links and assign them to this collection."}
           </p>
         </Card>
       ) : (
@@ -186,7 +228,19 @@ export default function CollectionDetailView({ id }: { id: string }) {
         </>
       )}
 
-      <EditCollectionModal open={editOpen} onOpenChange={setEditOpen} collection={collection} />
+      <EditCollectionModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        collection={collection}
+      />
+      <DeleteCollectionModal
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={handleDelete}
+        isPending={isDeleting}
+        collectionName={collection.name}
+        linkCount={linkCount}
+      />
     </div>
   );
 }

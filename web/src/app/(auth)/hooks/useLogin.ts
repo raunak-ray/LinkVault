@@ -32,10 +32,9 @@ export function useLogin() {
         "Signed in successfully.",
       );
       const next = searchParams.get("next");
+      // Guard against open redirects: only same-origin, non-protocol-relative paths.
       const target =
-        next && next.startsWith("/") && !next.startsWith("//")
-          ? next
-          : "/dashboard";
+        next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
       router.push(target);
       router.refresh();
     },

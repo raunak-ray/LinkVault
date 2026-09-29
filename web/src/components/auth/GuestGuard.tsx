@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-provider";
 
 export default function GuestGuard({
@@ -18,9 +18,7 @@ export default function GuestGuard({
       const next = searchParams.get("next");
       // Prevent open redirect — only allow internal paths
       const target =
-        next && next.startsWith("/") && !next.startsWith("//")
-          ? next
-          : "/dashboard";
+        next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
       router.replace(target);
     }
   }, [isLoading, isAuthenticated, router, searchParams]);

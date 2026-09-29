@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { and, count, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, or } from 'drizzle-orm';
 import { DbProvider } from 'src/db/db.provider';
 import { Collection, Link, LinkMetadata } from 'src/db/schema';
 
@@ -32,9 +32,24 @@ export class SearchService {
           updatedAt: Link.updated_at,
         })
         .from(Link)
-        .innerJoin(Collection, and(eq(Link.collection_id, Collection.id), eq(Collection.user_id, userId)))
+        .innerJoin(
+          Collection,
+          and(
+            eq(Link.collection_id, Collection.id),
+            eq(Collection.user_id, userId),
+          ),
+        )
         .innerJoin(LinkMetadata, eq(Link.id, LinkMetadata.link_id))
-        .where(and(eq(Link.user_id, userId), or(ilike(Link.title, term), ilike(Link.url, term), ilike(LinkMetadata.description, term))!))
+        .where(
+          and(
+            eq(Link.user_id, userId),
+            or(
+              ilike(Link.title, term),
+              ilike(Link.url, term),
+              ilike(LinkMetadata.description, term),
+            ),
+          ),
+        )
         .orderBy(desc(Link.updated_at))
         .limit(limit),
 
@@ -48,25 +63,42 @@ export class SearchService {
           updatedAt: Collection.updated_at,
         })
         .from(Collection)
-        .where(and(eq(Collection.user_id, userId), ilike(Collection.name, term)))
+        .where(
+          and(eq(Collection.user_id, userId), ilike(Collection.name, term)),
+        )
         .orderBy(desc(Collection.updated_at))
         .limit(limit),
     ]);
 
     // Enrich collections with linkCount preview similarly light
-    let enrichedCollections = collections.map((c) => ({ ...c, linkCount: 0, previewLinks: [] as any[] }));
+    let enrichedCollections = collections.map((c) => ({
+      ...c,
+      linkCount: 0,
+    }));
     if (collections.length) {
       const ids = collections.map((c) => c.id);
       try {
         const counts = await this.dbProvider.db
           .select({ collectionId: Link.collection_id, total: count() })
           .from(Link)
-          .where(and(eq(Link.user_id, userId), inArray(Link.collection_id, ids)))
+          .where(
+            and(eq(Link.user_id, userId), inArray(Link.collection_id, ids)),
+          )
           .groupBy(Link.collection_id);
         const map = new Map<string, number>();
-        for (const r of counts as any[]) map.set(r.collectionId, Number(r.total));
-        enrichedCollections = enrichedCollections.map((c) => ({ ...c, linkCount: map.get(c.id) ?? 0 }));
-      } catch {}
+        for (const r of counts) map.set(r.collectionId, Number(r.total));
+        enrichedCollections = enrichedCollections.map((c) => ({
+          ...c,
+          linkCount: map.get(c.id) ?? 0,
+        }));
+      } catch (error) {
+        // Counts are an enrichment only: fall back to 0 instead of failing search.
+        this.logger.warn(
+          `Search collection counts failed (userId: ${userId}): ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
     }
 
     return { links, collections: enrichedCollections };

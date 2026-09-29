@@ -1,5 +1,5 @@
+import type { ComponentType } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ComponentType } from "react";
 
 export default function DashboardStatsCard({
   title,
@@ -18,7 +18,9 @@ export default function DashboardStatsCard({
           {title || "Title"}
         </CardTitle>
       </CardHeader>
-      <CardContent className="text-xl font-semibold sm:text-2xl">{value || 0}</CardContent>
+      <CardContent className="text-xl font-semibold sm:text-2xl">
+        {value || 0}
+      </CardContent>
     </Card>
   );
 }

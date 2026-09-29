@@ -21,7 +21,8 @@ export interface NotFoundProps {
 export const NOT_FOUND_DEFAULTS = {
   code: "404",
   title: "Page not found",
-  description: "The page you are looking for moved, vanished, or never existed.",
+  description:
+    "The page you are looking for moved, vanished, or never existed.",
   homeHref: "/",
   homeLabel: "Back home",
   browseHref: "/dashboard",

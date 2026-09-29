@@ -73,15 +73,16 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body>
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: static, build-time constant CSS; no user input is interpolated */}
         <style dangerouslySetInnerHTML={{ __html: CSS }} />
-        <div className="code" aria-label="500">
+        <div className="code" role="img" aria-label="500">
           500
         </div>
         <div>
           <p className="title">Something went wrong</p>
           <p className="desc">
-            The app hit a critical error. Your vault is safe — try again or
-            come back later.
+            The app hit a critical error. Your vault is safe — try again or come
+            back later.
           </p>
         </div>
         <div className="row">

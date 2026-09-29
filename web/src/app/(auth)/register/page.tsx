@@ -1,6 +1,9 @@
 import { Bookmark } from "lucide-motion";
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import RegisterForm from "../components/RegisterForm";
+
+export const metadata: Metadata = { title: "Create account" };
 
 export default function RegisterPage() {
   return (

@@ -1,21 +1,27 @@
+import { PanelLeft } from "lucide-motion";
+import { Suspense } from "react";
 import RequireAuth from "@/components/auth/RequireAuth";
+import MobileDock from "@/components/common/dashboard/MobileDock";
 import Sidebar from "@/components/common/dashboard/Sidebar";
+import GlobalSearch from "@/components/common/header/GlobalSearch";
+import HeaderAddLink from "@/components/common/header/HeaderAddLink";
+import UserMenu from "@/components/common/header/UserMenu";
+import ThemeToggle from "@/components/common/ThemeToggle";
 import {
   AnimatedSidebarProvider,
   AnimatedSidebarTrigger,
 } from "@/components/motion/animated-sidebar";
-import { PanelLeft } from "lucide-motion";
-import { Suspense } from "react";
-import ThemeToggle from "@/components/common/ThemeToggle";
-import GlobalSearch from "@/components/common/header/GlobalSearch";
-import UserMenu from "@/components/common/header/UserMenu";
-import HeaderAddLink from "@/components/common/header/HeaderAddLink";
-import MobileDock from "@/components/common/dashboard/MobileDock";
 export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <Suspense fallback={<div className="flex h-svh items-center justify-center"><div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary" /></div>}>
+    <Suspense
+      fallback={
+        <div className="flex h-svh items-center justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary" />
+        </div>
+      }
+    >
       <RequireAuth>
         <AnimatedSidebarProvider>
           <div className="flex h-svh w-full overflow-hidden bg-background text-foreground">
@@ -38,7 +44,9 @@ export default function DashboardLayout({
               </header>
 
               {/* Content */}
-              <div className="min-w-0 flex-1 px-4 pb-28 pt-6 md:px-8 md:pb-16">{children}</div>
+              <div className="min-w-0 flex-1 px-4 pb-28 pt-6 md:px-8 md:pb-16">
+                {children}
+              </div>
             </main>
 
             {/* Floating macOS-style dock for small screens */}

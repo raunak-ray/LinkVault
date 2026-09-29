@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
+import type { Express } from 'express';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -13,7 +14,9 @@ async function bootstrap() {
 
   // Behind Render (or any proxy) Express must trust the proxy for
   // `Secure` cookies to work correctly over TLS-terminated connections.
-  app.getHttpAdapter().getInstance().set('trust proxy', 1);
+  // `getInstance()` is untyped on the Express adapter, so narrow it explicitly.
+  const expressInstance = app.getHttpAdapter().getInstance() as Express;
+  expressInstance.set('trust proxy', 1);
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -24,10 +27,9 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin:
-      process.env.CORS_ORIGIN?.split(',')
-        .map((o) => o.trim().replace(/\/+$/, ''))
-        .filter(Boolean) ?? ['http://localhost:3000'],
+    origin: process.env.CORS_ORIGIN?.split(',')
+      .map((o) => o.trim().replace(/\/+$/, ''))
+      .filter(Boolean) ?? ['http://localhost:3000'],
     credentials: true,
     allowedHeaders: 'Content-Type, Authorization',
     methods: 'GET,POST,PUT,PATCH,DELETE,OPTIONS',

@@ -7,8 +7,21 @@ export interface CacheKeyParts {
 
 function serializeValue(v: unknown): string {
   if (v === undefined || v === null) return 'nil';
-  if (typeof v === 'object') return JSON.stringify(v);
-  return String(v);
+  switch (typeof v) {
+    case 'string':
+      return v;
+    case 'number':
+    case 'boolean':
+    case 'bigint':
+      return v.toString();
+    case 'symbol':
+      return v.description ?? v.toString();
+    case 'function':
+      return `[Function ${v.name || 'anonymous'}]`;
+    default:
+      // `JSON.stringify` returns undefined for values it cannot represent.
+      return JSON.stringify(v) ?? 'nil';
+  }
 }
 
 /**

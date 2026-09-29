@@ -21,6 +21,10 @@ import {
   COLLECTION_LIST_CACHE_KEY,
 } from './collection.cache';
 import { DASHBOARD_CACHE_KEY } from 'src/dashboard/dashboard.cache';
+import {
+  INDIVIDUAL_LINK_CACHE_KEY,
+  LINK_LIST_CACHE_KEY_PREFIX,
+} from 'src/links/links.cache';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { type Cache } from 'cache-manager';
 import {
@@ -168,10 +172,7 @@ export class CollectionsService {
         .where(where),
     ]);
 
-    const enriched = await this.enrichCollections(
-      userId,
-      collections as (typeof Collection.$inferSelect)[],
-    );
+    const enriched = await this.enrichCollections(userId, collections);
 
     const data = {
       data: enriched,
@@ -240,10 +241,27 @@ export class CollectionsService {
   }
 
   async delete(userId: string, id: string) {
-    const [deletedCollection] = await this.dbProvider.db
-      .delete(Collection)
-      .where(and(eq(Collection.id, id), eq(Collection.user_id, userId)))
-      .returning();
+    // A link can never exist without its collection, so removing a collection
+    // removes the links it holds. `tbl_link_metadata` rows cascade from
+    // `tbl_links`, and in-flight metadata jobs no-op against a missing row.
+    // The FK is ON DELETE no action, so the order here is load-bearing.
+    const { deletedCollection, deletedLinkIds } =
+      await this.dbProvider.db.transaction(async (t) => {
+        const removedLinks = await t
+          .delete(Link)
+          .where(and(eq(Link.collection_id, id), eq(Link.user_id, userId)))
+          .returning({ id: Link.id });
+
+        const [deleted] = await t
+          .delete(Collection)
+          .where(and(eq(Collection.id, id), eq(Collection.user_id, userId)))
+          .returning();
+
+        return {
+          deletedCollection: deleted,
+          deletedLinkIds: removedLinks.map((l) => l.id),
+        };
+      });
 
     if (!deletedCollection) {
       this.logger.warn(
@@ -262,15 +280,35 @@ export class CollectionsService {
         'collections:single',
       ),
       this.deleteUserListCache(userId),
+      // The removed links are still cached in the paginated link lists, so
+      // those have to go too or "All links" keeps showing them for 5 minutes.
+      deleteCacheByPrefix(
+        this.cacheManager,
+        `${LINK_LIST_CACHE_KEY_PREFIX}:${userId}:`,
+        this.logger,
+        'links:list:invalidate',
+      ),
       safeCacheDel(
         this.cacheManager,
         DASHBOARD_CACHE_KEY(userId),
         this.logger,
         'dashboard',
       ),
+      ...deletedLinkIds.map((linkId) =>
+        safeCacheDel(
+          this.cacheManager,
+          INDIVIDUAL_LINK_CACHE_KEY(userId, linkId),
+          this.logger,
+          'links:single',
+        ),
+      ),
     ]);
 
-    this.logger.log(`Collection deleted (id: ${id})`);
+    this.logger.log(
+      `Collection deleted (id: ${id}) with ${deletedLinkIds.length} link(s)`,
+    );
+
+    return { deletedLinks: deletedLinkIds.length };
   }
 
   private toCollectionResponse(
@@ -305,9 +343,7 @@ export class CollectionsService {
           total: count(),
         })
         .from(Link)
-        .where(
-          and(eq(Link.user_id, userId), inArray(Link.collection_id, ids)),
-        )
+        .where(and(eq(Link.user_id, userId), inArray(Link.collection_id, ids)))
         .groupBy(Link.collection_id),
 
       this.dbProvider.db
@@ -321,9 +357,7 @@ export class CollectionsService {
         })
         .from(Link)
         .innerJoin(LinkMetadata, eq(Link.id, LinkMetadata.link_id))
-        .where(
-          and(eq(Link.user_id, userId), inArray(Link.collection_id, ids)),
-        )
+        .where(and(eq(Link.user_id, userId), inArray(Link.collection_id, ids)))
         .orderBy(desc(Link.created_at)),
     ]);
 

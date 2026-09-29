@@ -2,7 +2,6 @@
 // beui.dev/components/motion/animated-sidebar
 
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import {
   AnimatePresence,
   type HTMLMotionProps,
@@ -10,6 +9,7 @@ import {
   useReducedMotion,
   type Variants,
 } from "motion/react";
+import Link from "next/link";
 import {
   type ButtonHTMLAttributes,
   type CSSProperties,
@@ -969,10 +969,14 @@ export function AnimatedSidebarMenuSubButton({
       aria-current={isActive ? "page" : undefined}
       aria-disabled={disabled || undefined}
       tabIndex={disabled ? -1 : undefined}
-      onClick={select as any}
+      onClick={select}
       className={interactiveClassName}
     >
-      <motion.span className="flex w-full items-center gap-2" whileTap={context.reduce || disabled ? undefined : { scale: 0.98 }} transition={SPRING_PRESS}>
+      <motion.span
+        className="flex w-full items-center gap-2"
+        whileTap={context.reduce || disabled ? undefined : { scale: 0.98 }}
+        transition={SPRING_PRESS}
+      >
         {content}
       </motion.span>
     </Link>
@@ -1024,9 +1028,10 @@ export function AnimatedSidebarMenuButton({
   const panel = useAnimatedSidebarPanel();
   const textLabel = typeof children === "string" ? children : undefined;
 
-  const select = (
-    event: React.MouseEvent<HTMLAnchorElement | HTMLButtonElement>,
-  ) => {
+  // Shared by both render branches: Next's `Link` types onClick for anchors
+  // while `motion.button` expects a button event, so the parameter is typed
+  // as the common `Element` base and narrowed by usage.
+  const select = (event: React.MouseEvent<Element>) => {
     if (disabled) {
       event.preventDefault();
       return;
@@ -1115,6 +1120,8 @@ export function AnimatedSidebarMenuButton({
     className,
   );
 
+  // `Link` types onClick for anchors and `motion.button` for buttons, so the
+  // same handler is reused via a signature both accept.
   return href ? (
     <Link
       href={href}
@@ -1126,10 +1133,14 @@ export function AnimatedSidebarMenuButton({
       aria-label={panel.collapsed ? textLabel : undefined}
       title={panel.collapsed ? textLabel : undefined}
       tabIndex={disabled ? -1 : undefined}
-      onClick={select as any}
+      onClick={select}
       className={interactiveClassName}
     >
-      <motion.span className="flex w-full items-center gap-2" whileTap={context.reduce || disabled ? undefined : { scale: 0.98 }} transition={SPRING_PRESS}>
+      <motion.span
+        className="flex w-full items-center gap-2"
+        whileTap={context.reduce || disabled ? undefined : { scale: 0.98 }}
+        transition={SPRING_PRESS}
+      >
         {content}
       </motion.span>
     </Link>
