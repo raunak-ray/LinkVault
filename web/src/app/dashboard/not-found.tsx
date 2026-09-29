@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { NotFoundGlitch } from "@/components/motion/not-found/glitch";
+
+export const metadata: Metadata = { title: "Not found" };
 
 /**
  * Dashboard-scoped 404 — renders inside the dashboard layout (sidebar + dock

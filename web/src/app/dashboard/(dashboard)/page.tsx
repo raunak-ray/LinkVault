@@ -1,12 +1,12 @@
 "use client";
 
-import { useAuth } from "@/lib/auth/auth-provider";
-import DashboardStats from "./components/DashboardStats";
-import useDashboard from "./hooks/useDashboard";
-import { Button } from "@/components/motion/button/base";
 import { ExternalLink } from "lucide-motion";
 import Link from "next/link";
+import { Button } from "@/components/motion/button/base";
+import { useAuth } from "@/lib/auth/auth-provider";
+import DashboardStats from "./components/DashboardStats";
 import RecentLinkCard from "./components/RecentLinkCard";
+import useDashboard from "./hooks/useDashboard";
 
 export default function DashboardPage() {
   const { data, isLoading } = useDashboard();
@@ -20,7 +20,8 @@ export default function DashboardPage() {
   const recentLinks = dashboard?.recentLinks ?? [];
 
   const hour = new Date().getHours();
-  const greet = hour < 12 ? "Good Morning" : hour < 18 ? "Good Evening" : "Good Night";
+  const greet =
+    hour < 12 ? "Good Morning" : hour < 18 ? "Good Evening" : "Good Night";
 
   if (isLoading) {
     return (
@@ -30,16 +31,19 @@ export default function DashboardPage() {
           <div className="h-4 w-64 bg-primary/10 rounded" />
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="surface-panel rounded-xl p-4">
+          {["links", "collections", "favourites"].map((k) => (
+            <div key={k} className="surface-panel rounded-xl p-4">
               <div className="h-3 w-16 bg-primary/10 rounded animate-pulse" />
               <div className="mt-3 h-7 w-12 bg-primary/10 rounded animate-pulse" />
             </div>
           ))}
         </div>
         <div className="space-y-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="surface-panel rounded-xl p-4 h-28 animate-pulse" />
+          {["a", "b", "c"].map((k) => (
+            <div
+              key={k}
+              className="surface-panel rounded-xl p-4 h-28 animate-pulse"
+            />
           ))}
         </div>
       </main>
@@ -52,14 +56,25 @@ export default function DashboardPage() {
         <h2 className="text-lg font-semibold md:text-2xl">
           {greet}, <span className="break-words">{user?.name}</span>
         </h2>
-        <p className="text-sm text-muted-foreground">Here&apos;s what&apos;s in your vault.</p>
+        <p className="text-sm text-muted-foreground">
+          Here&apos;s what&apos;s in your vault.
+        </p>
       </div>
-      <DashboardStats totalCollections={totalCollections} totalFavourites={totalFavouriteLinks} totalLinks={totalLinks} />
+      <DashboardStats
+        totalCollections={totalCollections}
+        totalFavourites={totalFavouriteLinks}
+        totalLinks={totalLinks}
+      />
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h1 className="text-sm font-semibold md:text-base">Recently saved</h1>
           <Link href="/dashboard/links">
-            <Button type="button" variant="ghost" size="sm" className="group gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="group gap-1.5"
+            >
               View all links
               <ExternalLink className="size-4 opacity-60 group-hover:opacity-100 transition-opacity" />
             </Button>
@@ -67,7 +82,9 @@ export default function DashboardPage() {
         </div>
         {recentLinks.length === 0 ? (
           <div className="surface-panel rounded-xl p-8 text-center border-dashed">
-            <p className="text-sm text-muted-foreground">No links yet. Save your first link to see it here.</p>
+            <p className="text-sm text-muted-foreground">
+              No links yet. Save your first link to see it here.
+            </p>
             <Link href="/dashboard/links" className="mt-3 inline-block">
               <Button size="sm">Add Link</Button>
             </Link>

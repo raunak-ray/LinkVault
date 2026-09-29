@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { SPRING_PRESS } from "@/lib/ease";
-import { useHoverCapable } from "@/lib/hooks/use-hover-capable";
+import { useEffect } from "react";
 import ErrorBrand from "@/components/common/ErrorBrand";
 import { Scramble } from "@/components/motion/not-found/glitch";
 import { NotFoundStage } from "@/components/motion/not-found/shared";
+import { SPRING_PRESS } from "@/lib/ease";
+import { useHoverCapable } from "@/lib/hooks/use-hover-capable";
 import { useToast } from "@/lib/toast/toast-provider";
 
-export default function Error({
+export default function ErrorRouteBoundary({
   error,
   reset,
 }: {
@@ -21,7 +21,6 @@ export default function Error({
   const { toast } = useToast();
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
     console.error(error);
     toast.error("Something went wrong", "Your vault is safe — try again.");
   }, [error, toast]);

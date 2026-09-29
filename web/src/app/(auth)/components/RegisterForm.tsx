@@ -3,9 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Lock, Mail } from "lucide-motion";
 import { EyeIcon, EyeOffIcon, Text } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/motion/button/base";
+import { StatefulButton } from "@/components/motion/button/stateful";
 import { Input } from "@/components/motion/input";
 import {
   Card,
@@ -15,10 +17,11 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getErrorMessage } from "@/lib/api/get-error-message";
-import { StatefulButton } from "@/components/motion/button/stateful";
-import { RegisterSchema, RegisterSchemaType } from "../schemas/register.schema";
 import useRegister from "../hooks/useRegister";
-import Link from "next/link";
+import {
+  RegisterSchema,
+  type RegisterSchemaType,
+} from "../schemas/register.schema";
 
 export default function LoginForm() {
   const { control, handleSubmit, watch } = useForm<RegisterSchemaType>({

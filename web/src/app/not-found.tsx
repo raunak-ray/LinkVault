@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
 import ErrorBrand from "@/components/common/ErrorBrand";
+
+export const metadata: Metadata = { title: "Page not found" };
+
 import { NotFoundGlitch } from "@/components/motion/not-found/glitch";
 
 export default function NotFound() {

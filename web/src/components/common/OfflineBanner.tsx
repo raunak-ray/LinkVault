@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { WifiOff } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect, useRef } from "react";
 import { useOffline } from "@/lib/hooks/use-online";
 import { useToast } from "@/lib/toast/toast-provider";
 

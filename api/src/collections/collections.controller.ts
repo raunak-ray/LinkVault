@@ -76,8 +76,6 @@ export class CollectionsController {
     @CurrentUser('sub') sub: string,
     @Param('id') id: string,
   ) {
-    await this.collectionService.delete(sub, id);
-
-    return null;
+    return this.collectionService.delete(sub, id);
   }
 }

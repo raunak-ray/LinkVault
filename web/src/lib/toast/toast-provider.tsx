@@ -1,15 +1,10 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { createContext, type ReactNode, useContext, useMemo } from "react";
 import {
   AnimatedToastStack,
-  useAnimatedToastStack,
   type ToastInput,
+  useAnimatedToastStack,
 } from "@/components/motion/animated-toast-stack";
 
 type ToastFn = (title: string, description?: string) => string;
@@ -30,13 +25,8 @@ type ToastContextValue = {
 const ToastContext = createContext<ToastContextValue | null>(null);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const {
-    toasts,
-    showToast,
-    updateToast,
-    dismissToast,
-    clearToasts,
-  } = useAnimatedToastStack({ defaultDuration: 4200, limit: 5 });
+  const { toasts, showToast, updateToast, dismissToast, clearToasts } =
+    useAnimatedToastStack({ defaultDuration: 4200, limit: 5 });
 
   const toast = useMemo(() => {
     const base = ((title: string, description?: string) =>

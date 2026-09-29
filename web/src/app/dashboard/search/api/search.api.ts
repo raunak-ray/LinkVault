@@ -1,6 +1,6 @@
 import api from "@/lib/api/client";
-import { ApiSuccessResponse } from "@/types";
-import { LinkResponse, CollectionResponse } from "../../(dashboard)/types";
+import type { ApiSuccessResponse } from "@/types";
+import type { CollectionResponse, LinkResponse } from "../../(dashboard)/types";
 
 export interface GlobalSearchResponse {
   links: LinkResponse[];
@@ -9,7 +9,10 @@ export interface GlobalSearchResponse {
 
 export const searchApi = {
   global: async (q: string, limit = 6) => {
-    const res = await api.get<ApiSuccessResponse<GlobalSearchResponse>>("/search", { params: { q, limit } });
+    const res = await api.get<ApiSuccessResponse<GlobalSearchResponse>>(
+      "/search",
+      { params: { q, limit } },
+    );
     return res.data.data;
   },
 };

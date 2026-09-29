@@ -1,16 +1,17 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
-  useCallback,
   useRef,
   useState,
 } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { authApi } from "@/app/(auth)/api/auth.api";
+import type { User } from "@/app/(auth)/types";
 import {
   attemptSilentRefresh,
   clearAccessToken,
@@ -18,7 +19,6 @@ import {
   getTokenExpiry,
   setAccessToken,
 } from "@/lib/api/client";
-import type { User } from "@/app/(auth)/types";
 
 type AuthContextValue = {
   user: User | null;
@@ -129,9 +129,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, [scheduleRefresh, query.data]);
+  }, [scheduleRefresh]);
 
   // Also refresh on visibility change if token is stale/expired
+  const { refetch: refetchUser } = query;
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
@@ -151,13 +152,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           });
       } else {
         // revalidate user in background
-        query.refetch();
+        refetchUser();
       }
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, queryClient, refetchUser, scheduleRefresh]);
 
   const logout = useCallback(async () => {
     try {

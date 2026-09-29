@@ -7,23 +7,23 @@ import {
   Check,
   Info,
   LoaderCircle,
-  X,
   type LucideIcon,
+  X,
 } from "lucide-react";
 import {
   AnimatePresence,
   motion,
-  useReducedMotion,
   type Transition,
+  useReducedMotion,
 } from "motion/react";
 import {
   memo,
+  type ReactNode,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
 import { EASE_OUT } from "@/lib/ease";
@@ -150,9 +150,9 @@ export function useAnimatedToastStack({
   defaultDuration = 4200,
   limit,
 }: UseAnimatedToastStackOptions = {}) {
-  const toastTimers = useRef<
-    Map<string, { timer: number; signature: string }>
-  >(new Map());
+  const toastTimers = useRef<Map<string, { timer: number; signature: string }>>(
+    new Map(),
+  );
   const [toasts, setToasts] = useState<AnimatedToast[]>(() =>
     initialToasts.map((toast) => createToast(toast, defaultDuration)),
   );
@@ -344,7 +344,9 @@ const ToastItem = memo(function ToastItem({
   const reduce = useReducedMotion();
   const status = toast.status ?? "neutral";
   const Icon = STATUS_ICON[status];
-  const iconNode = icons?.[status] ?? toast.icon ?? <Icon className="h-3.5 w-3.5" />;
+  const iconNode = icons?.[status] ?? toast.icon ?? (
+    <Icon className="h-3.5 w-3.5" />
+  );
   const canDismiss = toast.dismissible !== false && Boolean(onDismiss);
   const hasDetails = Boolean(toast.description || toast.action);
 
@@ -357,7 +359,9 @@ const ToastItem = memo(function ToastItem({
           : { opacity: 0, y: 22, scale: 0.96, filter: "blur(10px)" }
       }
       animate={
-        reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
+        reduce
+          ? { opacity: 1 }
+          : { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }
       }
       exit={
         reduce
@@ -396,7 +400,10 @@ const ToastItem = memo(function ToastItem({
           renderToast(toast)
         ) : (
           <div
-            className={cn("flex gap-3", hasDetails ? "items-start" : "items-center")}
+            className={cn(
+              "flex gap-3",
+              hasDetails ? "items-start" : "items-center",
+            )}
           >
             <motion.span
               layout

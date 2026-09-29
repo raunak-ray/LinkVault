@@ -1,11 +1,15 @@
 "use client";
 
-import { useTheme } from "@/components/provider/ThemeProvider";
-import { Button } from "@/components/motion/button/base";
 import { Moon, Sun } from "lucide-motion";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { Button } from "@/components/motion/button/base";
+import { useTheme } from "@/components/provider/ThemeProvider";
 
-export default function ThemeToggle({ className = "" }: { className?: string }) {
+export default function ThemeToggle({
+  className = "",
+}: {
+  className?: string;
+}) {
   const { theme, toggle } = useTheme();
   const isDark = theme === "dark";
 

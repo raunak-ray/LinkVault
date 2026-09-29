@@ -6,6 +6,7 @@ export interface CreateLinkPayload {
 
 export interface UpdateLinkPayload {
   url?: string;
+  title?: string;
   collectionId?: string;
 }
 

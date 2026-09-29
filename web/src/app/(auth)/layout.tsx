@@ -1,5 +1,5 @@
-import GuestGuard from "@/components/auth/GuestGuard";
 import { Suspense } from "react";
+import GuestGuard from "@/components/auth/GuestGuard";
 
 export default function AuthLayout({
   children,

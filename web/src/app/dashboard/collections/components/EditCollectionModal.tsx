@@ -1,21 +1,30 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Folder, Palette } from "lucide-motion";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import IconPicker from "@/components/common/IconPicker";
+import { Button } from "@/components/motion/button/base";
 import {
   CenterMorphModal,
   CenterMorphModalContent,
 } from "@/components/motion/center-morph-modal";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import { UpdateCollectionSchema } from "../schema/update-collection.schema";
-import useUpdateCollection from "../hooks/useUpdateCollection";
 import { Input } from "@/components/motion/input";
-import { Button } from "@/components/motion/button/base";
-import { useEffect } from "react";
-import { Folder, Palette } from "lucide-motion";
-import { CollectionResponse } from "../../(dashboard)/types";
-import IconPicker from "@/components/common/IconPicker";
+import type { CollectionResponse } from "../../(dashboard)/types";
+import useUpdateCollection from "../hooks/useUpdateCollection";
+import { UpdateCollectionSchema } from "../schema/update-collection.schema";
 
-const PRESET_COLORS = ["#6366F1", "#14b8a6", "#22c55e", "#f59e0b", "#f97316", "#ec4899", "#06b6d4", "#8b5cf6"];
+const PRESET_COLORS = [
+  "#6366F1",
+  "#14b8a6",
+  "#22c55e",
+  "#f59e0b",
+  "#f97316",
+  "#ec4899",
+  "#06b6d4",
+  "#8b5cf6",
+];
 
 export default function EditCollectionModal({
   open,
@@ -71,8 +80,12 @@ export default function EditCollectionModal({
         className="bg-card border p-5 max-w-md md:max-w-lg flex flex-col gap-4 border-border"
       >
         <div className="flex flex-col items-start">
-          <h1 className="text-base md:text-lg font-semibold text-card-foreground">Edit collection</h1>
-          <p className="text-sm text-muted-foreground">Update collection details.</p>
+          <h1 className="text-base md:text-lg font-semibold text-card-foreground">
+            Edit collection
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Update collection details.
+          </p>
         </div>
 
         <form className="space-y-4" onSubmit={onSubmit}>
@@ -86,7 +99,10 @@ export default function EditCollectionModal({
                 placeholder="Collection name"
                 label="Name"
                 leftIcon={<Folder className="size-4" />}
-                classNames={{ label: "text-card-foreground font-semibold text-sm", input: "placeholder:text-muted-foreground/60" }}
+                classNames={{
+                  label: "text-card-foreground font-semibold text-sm",
+                  input: "placeholder:text-muted-foreground/60",
+                }}
                 error={fieldState.error?.message}
               />
             )}
@@ -96,7 +112,10 @@ export default function EditCollectionModal({
             control={control}
             name="icon"
             render={({ field }) => (
-              <IconPicker value={field.value ?? ""} onChange={(v) => field.onChange(v)} />
+              <IconPicker
+                value={field.value ?? ""}
+                onChange={(v) => field.onChange(v)}
+              />
             )}
           />
 
@@ -111,7 +130,10 @@ export default function EditCollectionModal({
                   placeholder="#6366F1"
                   label="Color"
                   leftIcon={<Palette className="size-4" />}
-                  classNames={{ label: "text-card-foreground font-semibold text-sm", input: "placeholder:text-muted-foreground/60" }}
+                  classNames={{
+                    label: "text-card-foreground font-semibold text-sm",
+                    input: "placeholder:text-muted-foreground/60",
+                  }}
                   error={fieldState.error?.message}
                 />
                 <div className="flex gap-2 mt-2 flex-wrap">
@@ -119,7 +141,9 @@ export default function EditCollectionModal({
                     <button
                       key={c}
                       type="button"
-                      onClick={() => setValue("color", c, { shouldDirty: true })}
+                      onClick={() =>
+                        setValue("color", c, { shouldDirty: true })
+                      }
                       className={`size-7 rounded-full border-2 transition-all ${selectedColor === c ? "border-foreground scale-110" : "border-border hover:border-foreground/40"}`}
                       style={{ backgroundColor: c }}
                       aria-label={`Pick ${c}`}
@@ -131,10 +155,19 @@ export default function EditCollectionModal({
           />
 
           <div className="flex gap-2 justify-end pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
-            <Button type="submit" variant="primary" disabled={isPending} className="min-w-24">
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isPending}
+              className="min-w-24"
+            >
               {isPending ? "Saving..." : "Save"}
             </Button>
           </div>

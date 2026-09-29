@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 /**
  * Landing page "/" is public and must never redirect.
@@ -11,7 +11,7 @@ import type { NextRequest } from "next/server";
  * to /login on every refresh. Auth is handled by client-side silent refresh.
  */
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   // Allow all routes through; client guards handle redirects correctly
   return NextResponse.next();
 }

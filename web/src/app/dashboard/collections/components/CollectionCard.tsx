@@ -1,23 +1,37 @@
 "use client";
 
-import { CollectionResponse } from "../../(dashboard)/types";
-import { DynamicIcon } from "lucide-react/dynamic";
-import { useState } from "react";
-import { motion, useReducedMotion } from "motion/react";
-import { Button } from "@/components/motion/button/base";
-import { Ellipsis, Pencil, Trash2 } from "lucide-motion";
-import useDeleteCollection from "../hooks/useDeleteCollection";
-import EditCollectionModal from "./EditCollectionModal";
 import { useQueryClient } from "@tanstack/react-query";
-import { getFaviconUrl, resolveCollectionIcon } from "@/lib/utils";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Ellipsis, Pencil, Trash2 } from "lucide-motion";
+import { DynamicIcon } from "lucide-react/dynamic";
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/motion/button/base";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { getFaviconUrl, resolveCollectionIcon } from "@/lib/utils";
+import type { CollectionResponse } from "../../(dashboard)/types";
+import useDeleteCollection from "../hooks/useDeleteCollection";
+import DeleteCollectionModal from "./DeleteCollectionModal";
+import EditCollectionModal from "./EditCollectionModal";
 
-const FALLBACK_COLORS = ["#6366F1", "#14b8a6", "#22c55e", "#f59e0b", "#f97316", "#ec4899", "#06b6d4"];
+const FALLBACK_COLORS = [
+  "#6366F1",
+  "#14b8a6",
+  "#22c55e",
+  "#f59e0b",
+  "#f97316",
+  "#ec4899",
+  "#06b6d4",
+];
 
 function getFallbackColor(name: string) {
   let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < name.length; i++)
+    hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
   return FALLBACK_COLORS[hash % FALLBACK_COLORS.length];
 }
 
@@ -29,12 +43,11 @@ function formatDate(d: Date | string) {
   }).format(new Date(d));
 }
 
-function useIsHoverCapable() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(hover: hover)").matches;
-}
-
-export default function CollectionCard({ collection }: { collection: CollectionResponse }) {
+export default function CollectionCard({
+  collection,
+}: {
+  collection: CollectionResponse;
+}) {
   const color = collection.color || getFallbackColor(collection.name);
   const iconName = resolveCollectionIcon(collection.icon);
   const preview = collection.previewLinks ?? [];
@@ -43,29 +56,31 @@ export default function CollectionCard({ collection }: { collection: CollectionR
 
   const [hover, setHover] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const reduce = useReducedMotion();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { mutate: deleteCollection } = useDeleteCollection();
+  const { mutate: deleteCollection, isPending: isDeleting } =
+    useDeleteCollection();
 
   const spring = { type: "spring" as const, stiffness: 320, damping: 26 };
 
   const handleDelete = () => {
-    setMenuOpen(false);
-    if (!confirm(`Delete collection "${collection.name}"? This cannot be undone.`)) return;
     deleteCollection(collection.id, {
-      onSuccess: () => queryClient.invalidateQueries({ queryKey: ["collections"] }),
+      onSuccess: () =>
+        queryClient.invalidateQueries({ queryKey: ["collections"] }),
     });
   };
 
   const handleCardClick = () => {
-    if (menuOpen || editOpen) return;
+    if (menuOpen || editOpen || deleteOpen) return;
     router.push(`/dashboard/collections/${collection.id}`);
   };
 
   return (
     <>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: hover/focus only drives the decorative stack animation; no behaviour is attached to this div */}
       <div
         className="group relative pt-3"
         onMouseEnter={() => setHover(true)}
@@ -85,7 +100,9 @@ export default function CollectionCard({ collection }: { collection: CollectionR
           }
           transition={spring}
           className="absolute inset-x-3 top-3 h-24 origin-bottom rounded-xl border border-border"
-          style={{ backgroundColor: `color-mix(in oklab, ${color} 10%, var(--card))` }}
+          style={{
+            backgroundColor: `color-mix(in oklab, ${color} 10%, var(--card))`,
+          }}
         />
         <motion.div
           aria-hidden
@@ -98,7 +115,9 @@ export default function CollectionCard({ collection }: { collection: CollectionR
           }
           transition={spring}
           className="absolute inset-x-2 top-3 h-24 origin-bottom rounded-xl border border-border"
-          style={{ backgroundColor: `color-mix(in oklab, ${color} 16%, var(--card))` }}
+          style={{
+            backgroundColor: `color-mix(in oklab, ${color} 16%, var(--card))`,
+          }}
         />
 
         <motion.div
@@ -116,25 +135,45 @@ export default function CollectionCard({ collection }: { collection: CollectionR
           transition={spring}
           className="surface-panel group/card relative cursor-pointer rounded-xl p-4 shadow-[var(--shadow-lift)] transition-shadow hover:shadow-[var(--shadow-glow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <span aria-hidden className="absolute inset-x-4 top-0 h-px rounded-full" style={{ backgroundColor: color }} />
+          <span
+            aria-hidden
+            className="absolute inset-x-4 top-0 h-px rounded-full"
+            style={{ backgroundColor: color }}
+          />
 
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2.5 min-w-0">
               <div
                 className="flex size-9 items-center justify-center rounded-lg border border-border shrink-0 transition-transform group-hover/card:scale-105"
-                style={{ backgroundColor: `color-mix(in oklab, ${color} 14%, transparent)` }}
+                style={{
+                  backgroundColor: `color-mix(in oklab, ${color} 14%, transparent)`,
+                }}
               >
-                <DynamicIcon name={iconName as never} className="size-[18px] transition-transform group-hover/card:rotate-3" style={{ color }} />
+                <DynamicIcon
+                  name={iconName as never}
+                  className="size-[18px] transition-transform group-hover/card:rotate-3"
+                  style={{ color }}
+                />
               </div>
               <div className="min-w-0">
-                <h3 className="truncate text-sm font-semibold text-card-foreground">{collection.name}</h3>
+                <h3 className="truncate text-sm font-semibold text-card-foreground">
+                  {collection.name}
+                </h3>
                 <p className="text-xs text-muted-foreground">
-                  {linkCount} {linkCount === 1 ? "link" : "links"} · {formatDate(collection.updatedAt ?? collection.createdAt)}
+                  {linkCount} {linkCount === 1 ? "link" : "links"} ·{" "}
+                  {formatDate(collection.updatedAt ?? collection.createdAt)}
                 </p>
               </div>
             </div>
 
-            <div onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+            {/* The card itself is the click target; this wrapper keeps the
+                actions popover from triggering the card's navigation. */}
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: event only stops propagation to the card button below */}
+            {/* biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events belong to the focusable card/actions inside this wrapper, not the div itself */}
+            <div
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
               <Popover open={menuOpen} onOpenChange={setMenuOpen}>
                 <PopoverTrigger
                   render={
@@ -150,6 +189,7 @@ export default function CollectionCard({ collection }: { collection: CollectionR
                 />
                 <PopoverContent align="end" sideOffset={8} className="w-48 p-1">
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -162,10 +202,12 @@ export default function CollectionCard({ collection }: { collection: CollectionR
                   </button>
                   <div className="my-1 h-px bg-border" />
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      handleDelete();
+                      setMenuOpen(false);
+                      setDeleteOpen(true);
                     }}
                     className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10"
                   >
@@ -179,8 +221,11 @@ export default function CollectionCard({ collection }: { collection: CollectionR
           <div className="mt-3 space-y-1">
             {preview.length ? (
               preview.slice(0, 3).map((link) => (
-                <div key={link.id} className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                <div
+                  key={link.id}
+                  className="flex items-center gap-2 text-xs text-muted-foreground min-w-0"
+                >
+                  {/* biome-ignore lint/performance/noImgElement: remote third-party favicon, next/image adds no value here */}
                   <img
                     src={link.favicon || getFaviconUrl(link.url)}
                     alt=""
@@ -190,18 +235,38 @@ export default function CollectionCard({ collection }: { collection: CollectionR
                       (e.target as HTMLImageElement).style.display = "none";
                     }}
                   />
-                  <span className="truncate">{link.title || link.url.replace(/^https?:\/\//, "")}</span>
+                  <span className="truncate">
+                    {link.title || link.url.replace(/^https?:\/\//, "")}
+                  </span>
                 </div>
               ))
             ) : (
-              <p className="text-xs text-muted-foreground">Empty deck — nothing saved yet.</p>
+              <p className="text-xs text-muted-foreground">
+                Empty deck — nothing saved yet.
+              </p>
             )}
-            {remaining > 0 && <p className="pt-0.5 text-xs text-muted-foreground/80">+{remaining} more</p>}
+            {remaining > 0 && (
+              <p className="pt-0.5 text-xs text-muted-foreground/80">
+                +{remaining} more
+              </p>
+            )}
           </div>
         </motion.div>
       </div>
 
-      <EditCollectionModal open={editOpen} onOpenChange={setEditOpen} collection={collection} />
+      <EditCollectionModal
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        collection={collection}
+      />
+      <DeleteCollectionModal
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={handleDelete}
+        isPending={isDeleting}
+        collectionName={collection.name}
+        linkCount={linkCount}
+      />
     </>
   );
 }

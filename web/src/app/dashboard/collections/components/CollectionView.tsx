@@ -1,12 +1,9 @@
 "use client";
 
+import { Layers, Plus, Search } from "lucide-motion";
 import { useState } from "react";
-import useGetAllCollections from "../hooks/useGetAllCollections";
-import CollectionCard, { CollectionCardSkeleton } from "./CollectionCard";
 import { Button } from "@/components/motion/button/base";
 import { Input } from "@/components/motion/input";
-import { Search, Plus, Layers } from "lucide-motion";
-import useDebounce from "@/lib/hooks/useDebounce";
 import {
   Select,
   SelectContent,
@@ -14,6 +11,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/motion/select";
+import useDebounce from "@/lib/hooks/useDebounce";
+import useGetAllCollections from "../hooks/useGetAllCollections";
+import CollectionCard, { CollectionCardSkeleton } from "./CollectionCard";
 import CreateCollectionModal from "./CreateCollectionModal";
 
 type SortOption = "newest" | "oldest" | "name-asc" | "name-desc";
@@ -53,7 +53,9 @@ export default function CollectionView() {
       {/* Header - matches lovable */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-foreground md:text-2xl">Collections</h1>
+          <h1 className="text-xl font-semibold text-foreground md:text-2xl">
+            Collections
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Keep related links together so they&apos;re easy to find later.
           </p>
@@ -103,15 +105,22 @@ export default function CollectionView() {
       <div className="mt-6">
         {isLoading ? (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <CollectionCardSkeleton key={i} />
+            {["a", "b", "c", "d", "e", "f"].map((k) => (
+              <CollectionCardSkeleton key={k} />
             ))}
           </div>
         ) : isError ? (
           <div className="surface-panel rounded-xl p-8 flex flex-col items-center gap-3 text-center">
             <p className="font-medium">Failed to load collections</p>
-            <p className="text-sm text-muted-foreground">{(error as Error)?.message || "Something went wrong"}</p>
-            <Button variant="outline" size="sm" onClick={() => refetch()} className="mt-2">
+            <p className="text-sm text-muted-foreground">
+              {(error as Error)?.message || "Something went wrong"}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              className="mt-2"
+            >
               Retry
             </Button>
           </div>

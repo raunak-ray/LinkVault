@@ -1,13 +1,16 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { linkApi } from "../api/link.api";
-import type { LinkResponse } from "../../(dashboard)/types";
-import type { ApiSuccessResponse, PaginationResponse } from "@/types";
-import type { DashboardResponse } from "../../(dashboard)/types";
 import { getErrorMessage } from "@/lib/api/get-error-message";
 import { useToast } from "@/lib/toast/toast-provider";
+import type { ApiSuccessResponse, PaginationResponse } from "@/types";
+import type { DashboardResponse, LinkResponse } from "../../(dashboard)/types";
+import { linkApi } from "../api/link.api";
 
 /** Helper to update a link's isFavourite in a PaginationResponse page */
-function updateLinkInPage(page: PaginationResponse<LinkResponse>, id: string, isFavourite: boolean): PaginationResponse<LinkResponse> {
+function updateLinkInPage(
+  page: PaginationResponse<LinkResponse>,
+  id: string,
+  isFavourite: boolean,
+): PaginationResponse<LinkResponse> {
   return {
     ...page,
     data: page.data.map((l) => (l.id === id ? { ...l, isFavourite } : l)),
@@ -16,9 +19,11 @@ function updateLinkInPage(page: PaginationResponse<LinkResponse>, id: string, is
 
 /** Helper to update a link's isFavourite in infinite query cache */
 function updateInfiniteQueryCache(
-  old: { pages: PaginationResponse<LinkResponse>[]; pageParams: unknown[] } | undefined,
+  old:
+    | { pages: PaginationResponse<LinkResponse>[]; pageParams: unknown[] }
+    | undefined,
   id: string,
-  isFavourite: boolean
+  isFavourite: boolean,
 ) {
   if (!old) return old;
   return {
@@ -57,11 +62,11 @@ export default function useMarkFavourite() {
       >(["link", id]);
 
       // Update all ["links"] caches (infinite queries from useInfiniteQuery)
-      queryClient.setQueriesData<
-        { pages: PaginationResponse<LinkResponse>[]; pageParams: unknown[] }
-      >(
-        { queryKey: ["links"] },
-        (old) => updateInfiniteQueryCache(old, id, isFavourite),
+      queryClient.setQueriesData<{
+        pages: PaginationResponse<LinkResponse>[];
+        pageParams: unknown[];
+      }>({ queryKey: ["links"] }, (old) =>
+        updateInfiniteQueryCache(old, id, isFavourite),
       );
 
       // Update dashboard recentLinks
@@ -116,11 +121,11 @@ export default function useMarkFavourite() {
       const data = response.data;
 
       // Ensure server truth wins after optimistic update
-      queryClient.setQueriesData<
-        { pages: PaginationResponse<LinkResponse>[]; pageParams: unknown[] }
-      >(
-        { queryKey: ["links"] },
-        (old) => updateInfiniteQueryCache(old, data.id, data.isFavourite),
+      queryClient.setQueriesData<{
+        pages: PaginationResponse<LinkResponse>[];
+        pageParams: unknown[];
+      }>({ queryKey: ["links"] }, (old) =>
+        updateInfiniteQueryCache(old, data.id, data.isFavourite),
       );
       queryClient.setQueryData<ApiSuccessResponse<DashboardResponse>>(
         ["dashboard"],

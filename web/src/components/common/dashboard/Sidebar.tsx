@@ -1,6 +1,17 @@
 "use client";
 
 import {
+  Blocks,
+  House,
+  LogOut,
+  Moon,
+  Settings,
+  Star,
+  Sun,
+} from "lucide-motion";
+import { Bookmark } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import {
   AnimatedSidebar,
   AnimatedSidebarContent,
   AnimatedSidebarFooter,
@@ -11,22 +22,8 @@ import {
   AnimatedSidebarMenuButton,
   AnimatedSidebarMenuItem,
 } from "@/components/motion/animated-sidebar";
-import {
-  Blocks,
-  House,
-  LogOut,
-  PanelLeft,
-  Settings,
-  Star,
-  Moon,
-  Sun,
-  LayoutGrid,
-} from "lucide-motion";
-import { Bookmark } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth/auth-provider";
-import { useLogout } from "@/lib/auth/use-logout";
 import { useTheme } from "@/components/provider/ThemeProvider";
+import { useLogout } from "@/lib/auth/use-logout";
 
 const content = [
   {
@@ -50,7 +47,7 @@ const content = [
   {
     id: "collections",
     label: "Collections",
-    icon: LayoutGrid,
+    icon: Blocks,
     href: "/dashboard/collections",
   },
 ];
@@ -58,7 +55,6 @@ const content = [
 export default function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuth();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { theme, toggle } = useTheme();
 
@@ -69,14 +65,19 @@ export default function Sidebar() {
       panelClassName="border-sidebar-border bg-sidebar"
     >
       <AnimatedSidebarHeader className="px-4 pb-2 border-b border-sidebar-border h-14">
-        <div className="flex gap-2 items-center justify-start">
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard")}
+          className="flex gap-2 items-center justify-start rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          aria-label="LinkVault — go to dashboard"
+        >
           <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
             <Bookmark className="size-4" />
           </div>
           <h2 className="group-data-[state=collapsed]/sidebar:hidden font-semibold text-sidebar-foreground text-[15px] tracking-tight">
-            Link Vault
+            LinkVault
           </h2>
-        </div>
+        </button>
       </AnimatedSidebarHeader>
 
       <AnimatedSidebarContent className="px-2 pt-1">
@@ -113,7 +114,11 @@ export default function Sidebar() {
           <AnimatedSidebarMenuItem>
             <AnimatedSidebarMenuButton
               icon={
-                theme === "dark" ? <Sun className="size-4 text-muted-foreground" /> : <Moon className="size-4 text-muted-foreground" />
+                theme === "dark" ? (
+                  <Sun className="size-4 text-muted-foreground" />
+                ) : (
+                  <Moon className="size-4 text-muted-foreground" />
+                )
               }
               onSelect={toggle}
               className="text-sidebar-foreground hover:bg-sidebar-accent"
@@ -122,13 +127,14 @@ export default function Sidebar() {
             </AnimatedSidebarMenuButton>
           </AnimatedSidebarMenuItem>
           <AnimatedSidebarMenuItem>
-            {/*<AnimatedSidebarMenuButton
+            <AnimatedSidebarMenuButton
               icon={<Settings className="size-4 text-muted-foreground" />}
+              isActive={pathname.startsWith("/dashboard/settings")}
               onSelect={() => router.push("/dashboard/settings")}
-              className="text-sidebar-foreground hover:bg-sidebar-accent"
+              className="text-sidebar-foreground hover:bg-sidebar-accent data-[status=active]:bg-sidebar-accent data-[status=active]:font-medium"
             >
               Settings
-            </AnimatedSidebarMenuButton>*/}
+            </AnimatedSidebarMenuButton>
           </AnimatedSidebarMenuItem>
           <AnimatedSidebarMenuItem>
             <AnimatedSidebarMenuButton

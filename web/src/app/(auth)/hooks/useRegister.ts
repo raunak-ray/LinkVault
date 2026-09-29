@@ -1,13 +1,12 @@
-import { ApiErrorResponse, ApiSuccessResponse } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AuthUser } from "../types";
-import { AxiosError } from "axios";
-import type { RegisterPayload } from "../types";
-import { authApi } from "../api/auth.api";
+import type { AxiosError } from "axios";
+import { useRouter, useSearchParams } from "next/navigation";
 import { setAccessToken } from "@/lib/api/client";
 import { getErrorMessage } from "@/lib/api/get-error-message";
 import { useToast } from "@/lib/toast/toast-provider";
-import { useRouter, useSearchParams } from "next/navigation";
+import type { ApiErrorResponse, ApiSuccessResponse } from "@/types";
+import { authApi } from "../api/auth.api";
+import type { AuthUser, RegisterPayload } from "../types";
 
 export default function useRegister() {
   const queryKey = ["auth", "me"];
@@ -30,13 +29,12 @@ export default function useRegister() {
       queryClient.setQueryData(queryKey, user);
       toast.success(
         "Account created",
-        `Welcome to Link Vault${user.name ? `, ${user.name.split(" ")[0]}` : ""}.`,
+        `Welcome to LinkVault${user.name ? `, ${user.name.split(" ")[0]}` : ""}.`,
       );
       const next = searchParams.get("next");
+      // Guard against open redirects: only same-origin, non-protocol-relative paths.
       const target =
-        next && next.startsWith("/") && !next.startsWith("//")
-          ? next
-          : "/dashboard";
+        next?.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
       router.push(target);
       router.refresh();
     },

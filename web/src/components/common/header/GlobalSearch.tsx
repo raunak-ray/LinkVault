@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Search, Folder, ExternalLink } from "lucide-motion";
+import { ExternalLink, Folder, Search } from "lucide-motion";
 import { useRouter } from "next/navigation";
-import useDebounce from "@/lib/hooks/useDebounce";
+import { useEffect, useRef, useState } from "react";
 import useGlobalSearch from "@/app/dashboard/search/hooks/useGlobalSearch";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import useDebounce from "@/lib/hooks/useDebounce";
 import { getFaviconUrl } from "@/lib/utils";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 export default function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -46,9 +50,13 @@ export default function GlobalSearch() {
             className="flex h-9 w-full max-w-md items-center gap-2 rounded-lg border border-border bg-surface px-3 text-sm text-muted-foreground transition-colors hover:bg-accent"
           >
             <Search className="size-4" />
-            <span className="truncate hidden sm:inline">Search your vault…</span>
+            <span className="truncate hidden sm:inline">
+              Search your vault…
+            </span>
             <span className="truncate sm:hidden">Search…</span>
-            <kbd className="ml-auto hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] sm:inline">⌘K</kbd>
+            <kbd className="ml-auto hidden rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px] sm:inline">
+              ⌘K
+            </kbd>
           </button>
         }
       />
@@ -64,57 +72,89 @@ export default function GlobalSearch() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search links, collections..."
-            autoFocus
+            aria-label="Search links and collections"
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
-          {isFetching && <span className="text-xs text-muted-foreground animate-pulse">…</span>}
+          {isFetching && (
+            <span className="text-xs text-muted-foreground animate-pulse">
+              …
+            </span>
+          )}
         </div>
 
         <div className="max-h-80 overflow-y-auto p-2">
           {!debounced.trim() ? (
-            <p className="px-3 py-6 text-center text-sm text-muted-foreground">Type at least 2 characters to search</p>
+            <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+              Type at least 2 characters to search
+            </p>
           ) : showEmpty ? (
-            <p className="px-3 py-6 text-center text-sm text-muted-foreground">No results for “{debounced}”</p>
+            <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+              No results for “{debounced}”
+            </p>
           ) : (
             <>
               {collections.length > 0 && (
                 <div className="mb-2">
-                  <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Collections</p>
+                  <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Collections
+                  </p>
                   {collections.map((c) => (
                     <button
                       key={c.id}
+                      type="button"
                       onClick={() => {
                         setOpen(false);
                         router.push(`/dashboard/collections/${c.id}`);
                       }}
                       className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-accent text-left"
                     >
-                      <span className="flex size-7 items-center justify-center rounded-md border border-border" style={{ backgroundColor: `color-mix(in oklab, ${c.color || "#6366F1"} 14%, transparent)` }}>
-                        <Folder className="size-3.5" style={{ color: c.color || "#6366F1" }} />
+                      <span
+                        className="flex size-7 items-center justify-center rounded-md border border-border"
+                        style={{
+                          backgroundColor: `color-mix(in oklab, ${c.color || "#6366F1"} 14%, transparent)`,
+                        }}
+                      >
+                        <Folder
+                          className="size-3.5"
+                          style={{ color: c.color || "#6366F1" }}
+                        />
                       </span>
                       <span className="truncate font-medium">{c.name}</span>
-                      <span className="ml-auto text-xs text-muted-foreground">{c.linkCount ?? 0} links</span>
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {c.linkCount ?? 0} links
+                      </span>
                     </button>
                   ))}
                 </div>
               )}
               {links.length > 0 && (
                 <div>
-                  <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Links</p>
+                  <p className="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Links
+                  </p>
                   {links.map((l) => (
                     <button
                       key={l.id}
+                      type="button"
                       onClick={() => {
                         setOpen(false);
                         router.push(`/dashboard/links/${l.id}`);
                       }}
                       className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm hover:bg-accent text-left"
                     >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={l.metadata.favicon || getFaviconUrl(l.url)} alt="" className="size-7 rounded-md border border-border bg-card object-contain p-1" />
+                      {/* biome-ignore lint/performance/noImgElement: remote third-party favicon, next/image adds no value here */}
+                      <img
+                        src={l.metadata.favicon || getFaviconUrl(l.url)}
+                        alt=""
+                        className="size-7 rounded-md border border-border bg-card object-contain p-1"
+                      />
                       <span className="flex-1 truncate">
-                        <span className="block truncate font-medium leading-tight">{l.title || l.url}</span>
-                        <span className="block truncate text-xs text-muted-foreground">{l.url.replace(/^https?:\/\//, "").slice(0, 40)}</span>
+                        <span className="block truncate font-medium leading-tight">
+                          {l.title || l.url}
+                        </span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {l.url.replace(/^https?:\/\//, "").slice(0, 40)}
+                        </span>
                       </span>
                       <ExternalLink className="size-3.5 text-muted-foreground shrink-0" />
                     </button>

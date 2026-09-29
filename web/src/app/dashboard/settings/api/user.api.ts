@@ -1,6 +1,6 @@
-import api from "@/lib/api/client";
-import { ApiSuccessResponse } from "@/types";
 import type { User } from "@/app/(auth)/types";
+import api from "@/lib/api/client";
+import type { ApiSuccessResponse } from "@/types";
 
 export const userApi = {
   updateMe: async (data: { name?: string }) => {

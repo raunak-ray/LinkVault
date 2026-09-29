@@ -22,11 +22,7 @@ function getServerSnapshot() {
 
 /** True when the browser has network connectivity. */
 export function useOnline(): boolean {
-  return useSyncExternalStore(
-    subscribe,
-    getOnlineSnapshot,
-    getServerSnapshot,
-  );
+  return useSyncExternalStore(subscribe, getOnlineSnapshot, getServerSnapshot);
 }
 
 /** True when the browser is offline (no network). */
